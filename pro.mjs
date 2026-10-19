@@ -26,3 +26,13 @@ $('cf-pro-template').onclick=async()=>{try{await ensurePro();const q=quotes.find
 function download(blob,name){const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000)}
 btn.onclick=async()=>{dialog.showModal();$('cf-pro-content').hidden=true;notice('Verificando suscripción con Mercado Pago…');verified=false;try{await build()}catch(e){notice(e.message+'\nPuedes seguir usando el editor gratuito.')}};
 $('cf-pro-close').onclick=()=>dialog.close();
+
+
+/* Mobile safety: keep fixed subscription actions out of the primary save-button hit area. */
+const mobileDockFix=document.createElement('style');
+mobileDockFix.textContent=`@media(max-width:650px){
+#cf-pro-open{left:auto!important;right:12px!important;bottom:134px!important;max-width:136px!important;z-index:1000!important}
+#cf-plan-open{left:auto!important;right:12px!important;bottom:77px!important;max-width:136px!important;z-index:1000!important}
+#cf-cloud-toggle{right:12px!important;bottom:16px!important;max-width:170px!important}
+}`;
+document.head.appendChild(mobileDockFix);
