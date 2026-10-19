@@ -37,6 +37,19 @@ try:
     page.locator('[data-nav=inicio]').click()
     assert page.locator('body').evaluate('(el)=>el.scrollWidth<=window.innerWidth+2'), 'Horizontal overflow'
     page.screenshot(path=str(OUT/f'{label}-dashboard.png'),full_page=True)
+    # Fake backend responses only: verify that cancellation cannot use cached Pro access.
+    premium={'enabled':True}
+    page.route('**/functions/v1/cotizaflow-pro-access',lambda route:route.fulfill(json={'plan':'pro' if premium['enabled'] else 'free','status':'authorized' if premium['enabled'] else 'cancelled','payment_verified':premium['enabled']}))
+    page.evaluate("sessionStorage.setItem('cotizaflow-cloud-session-v1', JSON.stringify({access_token:'fixture-only-no-real-session',expires_at:4102444800}))")
+    page.locator('#cf-pro-open').click()
+    page.locator('#cf-pro-content').wait_for(state='visible')
+    premium['enabled']=False
+    page.locator('#cf-pro-calendar').click()
+    page.locator('#cf-pro-content').wait_for(state='hidden')
+    assert 'requiere Pro' in page.locator('#cf-pro-status').inner_text()
+    page.screenshot(path=str(OUT/f'{label}-pro-cancelled.png'),full_page=True)
+    page.locator('#cf-pro-close').click()
+    page.evaluate("sessionStorage.removeItem('cotizaflow-cloud-session-v1')")
     page.locator('[data-nav=ajustes]').click();page.locator('#business').fill('Técnica Demo');page.locator('#settings-form button[type=submit]').click()
     with page.expect_download() as d: page.locator('#export').click()
     backup=OUT/f'{label}-backup.json';d.value.save_as(backup);assert b'T' in backup.read_bytes()
