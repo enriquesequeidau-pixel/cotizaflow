@@ -26,7 +26,7 @@ try:
     page.locator('[data-key=name]').fill('Revisión de tablero');assert page.locator('[data-key=price]').input_value()=='25000'
     page.locator('#status').select_option('enviada');page.locator('#quote-form button[type=submit]').click()
     assert page.get_by_role('button',name='COT-0001').count()==1
-    page.reload(); assert page.get_by_role('button',name='COT-0001').count()==1
+    page.reload(); page.locator('[data-nav=cotizaciones]').click(); assert page.get_by_role('button',name='COT-0001').count()==1
     with page.expect_download() as d: page.locator('[data-pdf]').click()
     pdf=OUT/f'{label}-cotizacion.pdf';d.value.save_as(pdf)
     assert pdf.read_bytes().startswith(b'%PDF-1.4')
