@@ -1,0 +1,51 @@
+
+name: CotizaFlow - Pruebas visuales
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  pruebas:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Descargar proyecto
+        uses: actions/checkout@v4
+
+      - name: Instalar Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Instalar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Preparar pruebas
+        run: |
+          mkdir -p tests artifacts
+          cp core.test.mjs tests/core.test.mjs
+          cp e2e_playwright.py tests/e2e_playwright.py
+
+      - name: Ejecutar pruebas unitarias
+        run: node --test tests/core.test.mjs
+
+      - name: Instalar Playwright
+        run: |
+          python -m pip install playwright
+          python -m playwright install --with-deps chromium
+
+      - name: Ejecutar pruebas visuales
+        run: python tests/e2e_playwright.py
+
+      - name: Guardar evidencias
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cotizaflow-pruebas-visuales
+          path: artifacts/
+          if-no-files-found: warn
