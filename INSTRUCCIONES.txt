@@ -1,0 +1,8 @@
+ARCHIVOS ADICIONALES - NO SOBRESCRIBIR app.mjs/core.mjs/backup.mjs/style.css/index.html.
+
+Conservar las rutas:
+.github/workflows/visual-e2e.yml
+tests/e2e_playwright.py
+tests/core.test.mjs
+
+El repositorio contiene una version posterior a v1.1: las pruebas requieren ejecutar GitHub Actions y probablemente ajustar selectores/expectativas al codigo actualizado. No se ha verificado un run. GitHub no descomprime automaticamente ZIP.
