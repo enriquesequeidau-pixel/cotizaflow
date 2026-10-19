@@ -1,0 +1,13 @@
+import fs from 'node:fs';import assert from 'node:assert/strict';
+const root=new URL('../',import.meta.url);const read=p=>fs.readFileSync(new URL(p,root),'utf8');
+const html=read('index.html');
+assert(html.includes('src="app.mjs"')&&html.includes('src="cloud.mjs"'));
+const inline=html.match(/<script type="module">([\s\S]*?)<\/script>/)?.[1];assert(inline);new Function(inline);
+for(const id of ['cf-plan-refresh','cf-plan-checkout','cf-plan-cancel','cf-plan-report'])assert(html.includes(id));
+assert(html.includes('result.checkout_enabled === true'));
+assert(html.includes("result.plan !== 'pro'"));
+const common=read('supabase/functions/common.ts');assert(common.includes("paid.status==='approved'"));assert(common.includes("paid.currency_id==='CLP'"));assert(common.includes('assertSubscription'));
+const checkout=read('supabase/functions/cotizaflow-mp-checkout/index.ts');assert(checkout.includes('catalog.checkout_enabled'));assert(checkout.includes("action==='cancel'"));assert(checkout.includes("return json(200,{checkout_url:u.href})"));
+const hook=read('supabase/functions/cotizaflow-mp-webhook/index.ts');assert(hook.includes("crypto.subtle.verify('HMAC'"));assert(hook.includes('reconcile(client,row,user.email)'));
+const report=read('supabase/functions/cotizaflow-pro-report/index.ts');assert(report.includes("status.plan!=='pro'"));assert(report.includes("safeCsv"));
+console.log('OK: 16 comprobaciones estáticas de interfaz, checkout, permisos, webhooks y CSV');
