@@ -3,3 +3,20 @@
 /* Keep grid children inside narrow viewports; tables scroll within their panel. */
 .shell,.sidebar,.panel,.stack,.split>*{min-width:0}.panel,.notice,.top{overflow-wrap:anywhere}.btn,.nav button{min-height:44px}button:focus-visible{outline:3px solid #10796c;outline-offset:3px}
 @media(max-width:800px){.sidebar{display:block;overflow:visible}.brand{margin-bottom:10px}.nav{overflow-x:auto;max-width:100%}.nav button{flex-shrink:0}.totalbar{gap:12px;flex-wrap:wrap}}
+
+/* Menú móvil: mostrar todas las secciones */
+@media (max-width: 800px) {
+  .sidebar .nav {
+    display: flex;
+    flex-wrap: wrap;
+    white-space: normal;
+    overflow-x: visible;
+    max-width: 100%;
+    gap: 6px;
+  }
+
+  .sidebar .nav button {
+    flex: 0 0 auto;
+    white-space: normal;
+  }
+}
