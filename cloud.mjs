@@ -35,7 +35,7 @@ function showCloud(){state(recoveryToken?'Escribe una contraseña nueva para rec
 toggle.onclick=showCloud;$('cf-close').onclick=()=>dialog.close();
 $('cf-forgot').onclick=async()=>{
  const email=$('cf-email').value.trim();
- if(!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)){state('Escribe primero tu correo electrónico para recuperar el acceso.');$('cf-email').focus();return;}
+ if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){state('Escribe primero tu correo electrónico para recuperar el acceso.');$('cf-email').focus();return;}
  const btn=$('cf-forgot');btn.disabled=true;btn.textContent='Enviando enlace…';state('Solicitando correo de recuperación…');
  try{
   const redirectTo=new URL(location.pathname,location.origin).href;
