@@ -6,6 +6,11 @@ from pathlib import Path
 from playwright.sync_api import sync_playwright, expect
 
 root=Path(__file__).resolve().parents[1]
+# CotizaFlow deliberately uses an app-specific, session-scoped Auth token store.
+CLOUD=(root/'cloud.mjs').read_text(encoding='utf-8')
+assert "const SESSION_KEY='cotizaflow-cloud-session-v1'" in CLOUD
+assert "supabase.auth.signOut(" not in CLOUD
+
 server=subprocess.Popen(['python3','-m','http.server','4389','--bind','127.0.0.1'],cwd=root,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
 try:
     time.sleep(1)
