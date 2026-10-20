@@ -1,3 +1,4 @@
+from urllib.parse import urlparse, parse_qs
 import json
 import subprocess
 import time
@@ -15,10 +16,12 @@ try:
             page=ctx.new_page()
             errors=[]
             sent=[]
+            recovery_urls=[]
             page.on('pageerror', lambda err: errors.append(str(err)))
             def intercept(route):
                 req=route.request
                 if req.method=='POST':
+                    recovery_urls.append(req.url)
                     sent.append(json.loads(req.post_data or '{}'))
                     route.fulfill(status=200,content_type='application/json',headers={'Access-Control-Allow-Origin':'*'},body='{}')
                 else:
@@ -35,6 +38,8 @@ try:
             link.click()
             expect(page.locator('#cf-cloud-status')).to_contain_text('Solicitud recibida',timeout=10000)
             assert len(sent)==1 and sent[0]['email']=='qa-cotizaflow@example.com',sent
+            redirect=parse_qs(urlparse(recovery_urls[0]).query).get('redirect_to',[None])[0]
+            assert redirect=='http://127.0.0.1:4389/',f'Recovery escaped CotizaFlow: {redirect}'
             expect(link).to_be_enabled()
             assert not errors,errors
             print(json.dumps({'width':width,'status':'PASS','sent_mocked_recovery_requests':len(sent)}))
