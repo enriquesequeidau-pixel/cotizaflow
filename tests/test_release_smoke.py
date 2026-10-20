@@ -35,5 +35,18 @@ class ReleaseSmoke(unittest.TestCase):
                 self.assertNotRegex(content, r"(?i)(?:service_role|webhook_secret|mp_access_token)\s*[:=]\s*['\"][^'\"]{12,}")
                 self.assertNotRegex(content, r"sb_secret_[A-Za-z0-9_-]{12,}")
 
+
+    def test_legal_pages_and_support(self):
+        html = (ROOT / "app.mjs").read_text(encoding="utf-8")
+        self.assertIn('href="privacidad.html"', html)
+        self.assertIn('href="terminos.html"', html)
+        self.assertIn('mailto:soporte@sequeidaulabs.com', html)
+        for filename in ("privacidad.html", "terminos.html"):
+            page = (ROOT / filename).read_text(encoding="utf-8")
+            with self.subTest(page=filename):
+                self.assertIn("Sequeidau Labs SpA", page)
+                self.assertIn("soporte@sequeidaulabs.com", page)
+                self.assertIn("cobros reales", page.lower())
+
 if __name__ == "__main__":
     unittest.main()
