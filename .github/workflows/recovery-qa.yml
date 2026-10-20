@@ -1,0 +1,28 @@
+name: CotizaFlow password recovery QA
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'cloud.mjs'
+      - 'tests/recovery-flow.py'
+      - '.github/workflows/recovery-qa.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check source syntax
+        run: node --check cloud.mjs
+      - name: Install Chromium
+        run: |
+          python -m pip install playwright==1.55.0
+          python -m playwright install --with-deps chromium
+      - name: Click recovery link in mobile and desktop Chromium
+        run: python tests/recovery-flow.py
