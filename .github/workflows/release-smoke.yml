@@ -16,3 +16,13 @@ jobs:
           python-version: '3.12'
       - name: Static release safety checks
         run: python -m unittest discover -s tests -p 'test_release_smoke.py' -v
+      - name: Verify production custom HTTPS routes
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE='https://cotizaflow.sequeidaulabs.com'
+          for ROUTE in / /cloud.mjs /pro.mjs; do
+            HTTP=$(curl --fail --silent --show-error -L --retry 3 --retry-delay 3 --max-time 30 -o /tmp/cotizaflow-domain -w '%{http_code}' "$BASE$ROUTE")
+            echo "$BASE$ROUTE -> HTTP $HTTP"
+            test "$HTTP" = '200'
+          done
