@@ -16,7 +16,8 @@ try:
     time.sleep(1)
     with sync_playwright() as p:
         browser=p.chromium.launch(headless=True)
-        for width in [375,1280]:
+        for width, base_url in ((375,'http://127.0.0.1:4389'),(1280,'http://127.0.0.1:4389'),(375,'https://cotizaflow.sequeidaulabs.com'),(1280,'https://cotizaflow.sequeidaulabs.com')):
+            variant='public' if base_url.startswith('https') else 'local'
             ctx=browser.new_context(viewport={'width':width,'height':800},device_scale_factor=1)
             page=ctx.new_page()
             errors=[]
@@ -32,7 +33,7 @@ try:
                 else:
                     route.fulfill(status=204,headers={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Methods':'POST,OPTIONS','Access-Control-Allow-Headers':'content-type,apikey'})
             page.route('**/auth/v1/recover*',intercept)
-            page.goto('http://127.0.0.1:4389/',wait_until='domcontentloaded')
+            page.goto(f'{base_url}/',wait_until='domcontentloaded')
             page.locator('#cf-cloud-toggle').click()
             link=page.locator('#cf-forgot')
             expect(link).to_be_visible()
@@ -44,10 +45,10 @@ try:
             expect(page.locator('#cf-cloud-status')).to_contain_text('Solicitud recibida',timeout=10000)
             assert len(sent)==1 and sent[0]['email']=='qa-cotizaflow@example.com',sent
             redirect=parse_qs(urlparse(recovery_urls[0]).query).get('redirect_to',[None])[0]
-            assert redirect=='http://127.0.0.1:4389/',f'Recovery escaped CotizaFlow: {redirect}'
+            assert redirect==f'{base_url}/',f'Recovery escaped CotizaFlow: {redirect}'
             expect(link).to_be_enabled()
             assert not errors,errors
-            print(json.dumps({'width':width,'status':'PASS','sent_mocked_recovery_requests':len(sent)}))
+            print(json.dumps({'width':width,'variant':variant,'status':'PASS','sent_mocked_recovery_requests':len(sent)}))
             ctx.close()
         browser.close()
 finally:
