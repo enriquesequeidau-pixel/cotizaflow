@@ -20,6 +20,8 @@ for name in SOURCES:
  assert not re.search(r"\bimportScripts\s*\(",src), "Worker code loading: "+name
  for m in re.finditer(r"""\b(?:import|export)\s+(?:[^;\n]*?\bfrom\s*)?['"]([^'"]+)['"]""",src):
   spec=m.group(1)
+  if name in ("check.mjs","smoke.mjs") and spec.startswith("node:"):
+   continue  # Local developer-only checks may import standard Node.js built-ins.
   assert spec.startswith("./"), "External module must be audited before launch: "+name+" -> "+spec
   dependency=(path.parent/spec).resolve()
   assert dependency.is_relative_to(ROOT.resolve()) and dependency.is_file(), "Unresolved local dependency: "+spec
