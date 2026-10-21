@@ -11,7 +11,11 @@ const btn=document.createElement('button');btn.id='cf-pro-open';btn.textContent=
 const dialog=document.createElement('dialog');dialog.id='cf-pro-dialog';dialog.innerHTML=`<h2>✨ Estudio CotizaFlow Pro</h2><p id="cf-pro-status" role="status" aria-live="polite">Inicia sesión para verificar tu plan.</p><div id="cf-pro-content" hidden></div><button id="cf-pro-close">Cerrar</button>`;document.body.append(dialog);
 const $=id=>dialog.querySelector('#'+id);const notice=m=>$('cf-pro-status').textContent=m;
 let verified=false,expires=0,brand={};
-async function sessionToken(){let v=JSON.parse(sessionStorage.getItem(SESSION)||'null');if(!v?.access_token)throw Error('Inicia sesión primero en ☁ Respaldo nube.');if(v.expires_at&&Date.now()/1000>v.expires_at-60){const r=await fetch(API+'/auth/v1/token?grant_type=refresh_token',{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({refresh_token:v.refresh_token})});if(!r.ok)throw Error('Sesión caducada: vuelve a iniciar sesión.');const t=await r.json();v={...t,expires_at:Math.floor(Date.now()/1000)+t.expires_in};sessionStorage.setItem(SESSION,JSON.stringify(v))}return v.access_token}
+async function sessionToken(){
+ // Cloud, plan and Pro must share one refresh transaction for this app's session.
+ if(!window.CotizaFlowSession?.token)throw Error('No fue posible acceder a la sesión de CotizaFlow. Recarga la página.');
+ return window.CotizaFlowSession.token();
+}
 async function entitlement(){const token=await sessionToken();const r=await fetch(API+'/functions/v1/cotizaflow-pro-access',{method:'POST',headers:{apikey:KEY,Authorization:'Bearer '+token,'Content-Type':'application/json'},body:'{}'});if(!r.ok)throw Error('No se pudo verificar el pago. Intenta más tarde.');const v=await r.json();verified=v.plan==='pro'&&v.payment_verified===true;expires=Date.now()+3*60000;return verified}
 async function ensurePro(){if(!verified||Date.now()>expires){verified=false;await entitlement()}if(!verified)throw Error('Esta función requiere Pro con pago aprobado en Mercado Pago.');return true}
 function safeName(n){return String(n||'cotizacion').replace(/[^\w-]/g,'_').slice(0,64)}
