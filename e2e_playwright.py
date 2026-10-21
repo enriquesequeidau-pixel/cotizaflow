@@ -27,7 +27,7 @@ try:
     assert page.get_by_text('<svg onload=window.__cf_xss=1></svg>',exact=True).count()>=1
 
     assert page.get_by_text('Ana Pérez').count()>=1
-    page.locator('[data-entity-edit]').click();page.locator('#name').fill('Ana Pérez Editada');page.locator('#entity-form button[type=submit]').click()
+    page.locator('[data-entity-edit]').first.click();page.locator('#name').fill('Ana Pérez Editada');page.locator('#entity-form button[type=submit]').click()
     page.locator('[data-nav=servicios]').click();page.locator('#name').fill('Revisión de tablero');page.locator('#price').fill('25000');page.locator('#entity-form button[type=submit]').click()
     page.locator('[data-nav=cotizaciones]').click();page.locator('[data-new=editar]').click();page.locator('#clientId').select_option(label='Ana Pérez Editada')
     page.locator('[data-key=name]').fill('Revisión de tablero');assert page.locator('[data-key=price]').input_value()=='25000'
