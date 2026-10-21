@@ -50,21 +50,11 @@
       catch { return null; }
     };
     async function token() {
-      let current = readSession();
-      if (!current?.access_token) throw new Error('Inicia sesión desde ☁ Respaldo nube antes de consultar tu plan.');
-      if (current.expires_at && Date.now() / 1000 >= current.expires_at - 60) {
-        if (!current.refresh_token) throw new Error('Tu sesión venció. Inicia sesión de nuevo.');
-        const response = await fetch(BASE + '/auth/v1/token?grant_type=refresh_token', {
-          method: 'POST',
-          headers: { apikey: PUBLIC_KEY, 'Content-Type': 'application/json' },
-          body: JSON.stringify({refresh_token: current.refresh_token})
-        });
-        if (!response.ok) throw new Error('La sesión venció. Cierra sesión e inicia de nuevo.');
-        const fresh = await response.json();
-        current = {...fresh, expires_at: Math.floor(Date.now() / 1000) + fresh.expires_in};
-        sessionStorage.setItem(SESSION_KEY, JSON.stringify(current));
+      // Centralizes refresh in cloud.mjs to avoid reusing rotating refresh tokens.
+      if (!window.CotizaFlowSession?.token) {
+        throw new Error('No fue posible cargar el respaldo en la nube. Recarga esta página.');
       }
-      return current.access_token;
+      return window.CotizaFlowSession.token();
     }
     async function callBilling(action) {
       const access = await token();
