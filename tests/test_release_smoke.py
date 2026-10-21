@@ -21,6 +21,17 @@ class ReleaseSmoke(unittest.TestCase):
             with self.subTest(path=path):
                 self.assertTrue((ROOT / path.split("?")[0].lstrip("/")).is_file(), f"Missing linked script: {path}")
 
+    def test_document_csp_and_external_plan_module(self):
+        html=(ROOT / "index.html").read_text(encoding="utf-8")
+        plan=(ROOT / "plan-checkout.mjs").read_text(encoding="utf-8")
+        self.assertIn('http-equiv="Content-Security-Policy"',html)
+        self.assertIn("script-src 'self'",html)
+        self.assertIn('src="plan-checkout.mjs"',html)
+        self.assertNotIn('<script type="module">',html)
+        self.assertIn("cotizaflow-mp-checkout",plan)
+        self.assertIn("checkout_enabled === true",plan)
+        self.assertIn("status",plan)
+
     def test_pro_verification_is_server_side(self):
         pro = (ROOT / "pro.mjs").read_text(encoding="utf-8")
         self.assertIn("cotizaflow-pro-access", pro)
