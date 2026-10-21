@@ -18,6 +18,11 @@ class AuthPolicy(unittest.TestCase):
         self.assertIn('return refreshPending',cloud)
         self.assertIn('window.CotizaFlowSession.token()',billing)
         self.assertNotIn("grant_type=refresh_token",billing)
+        pro=(ROOT/'pro.mjs').read_text('utf-8')
+        self.assertIn('window.CotizaFlowSession.token()',pro)
+        self.assertNotIn("grant_type=refresh_token",pro)
+        self.assertNotIn("sessionStorage.setItem(SESSION,JSON.stringify",pro)
+
     def test_app_specific_auth_redirect_and_session(self):
         src=(ROOT/'cloud.mjs').read_text('utf-8')
         self.assertIn("const SESSION_KEY='cotizaflow-cloud-session-v1'",src)
