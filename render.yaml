@@ -1,0 +1,32 @@
+# Safe, non-live Blueprint staging for the EXISTING cotizaflow-comercial-preview static site.
+# Adding this file does NOT link a Blueprint or change DNS/production hosting.
+# Do NOT provision an additional Render service. Confirm linking and inspect the
+# preview's HTTP headers and purchase/recovery flows before changing public DNS.
+services:
+  - type: web
+    name: cotizaflow-comercial-preview
+    runtime: static
+    repo: https://github.com/enriquesequeidau-pixel/cotizaflow
+    branch: main
+    autoDeployTrigger: off
+    buildCommand: mkdir -p dist && cp index.html style.css app.mjs cloud.mjs pro.mjs backup.mjs core.mjs workflow.mjs plan-checkout.mjs privacidad.html terminos.html dist/
+    staticPublishPath: dist
+    headers:
+      - path: /*
+        name: Strict-Transport-Security
+        value: "max-age=31536000"
+      - path: /*
+        name: Content-Security-Policy
+        value: "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://nrwbnjjaqilgreqhpcov.supabase.co; img-src 'self' data: blob:; font-src 'self' data:; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: Referrer-Policy
+        value: strict-origin-when-cross-origin
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
+      - path: /*
+        name: Permissions-Policy
+        value: "camera=(), microphone=(), geolocation=()"
