@@ -45,6 +45,11 @@ try:
     assert page.locator('body').evaluate('(el)=>el.scrollWidth<=window.innerWidth+2'), 'Horizontal overflow'
     page.screenshot(path=str(OUT/f'{label}-dashboard.png'),full_page=True)
     page.locator('[data-nav=ajustes]').click();page.locator('#business').fill('Técnica Demo');page.locator('#settings-form button[type=submit]').click()
+    # A disguised backup must not trigger JSON parsing, confirmation, or restoration.
+    page.locator('#import-file').set_input_files({'name':'payload.html','mimeType':'text/html','buffer':b'{}'})
+    assert 'Solo se permiten respaldos JSON' in page.locator('body').inner_text()
+    page.locator('#import-file').set_input_files({'name':'empty.json','mimeType':'application/json','buffer':b''})
+    assert 'debe contener datos' in page.locator('body').inner_text()
     with page.expect_download() as d: page.locator('#export').click()
     backup=OUT/f'{label}-backup.json';d.value.save_as(backup);assert b'T' in backup.read_bytes()
     assert not page_errors, page_errors
