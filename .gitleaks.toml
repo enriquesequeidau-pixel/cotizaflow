@@ -1,0 +1,6 @@
+# Supabase publishable browser keys are deliberately public, not credentials.
+# Keep all private secret patterns and generic credential detection enabled.
+[[allowlists]]
+description = "Supabase public publishable keys used in browser clients"
+regexTarget = "secret"
+regexes = ['^sb_publishable_[A-Za-z0-9_-]+$']
