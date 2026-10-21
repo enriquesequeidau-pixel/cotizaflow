@@ -19,6 +19,13 @@ try:
     page.get_by_role('heading',name='Tus cotizaciones').wait_for()
     page.locator('[data-nav=clientes]').click()
     page.locator('#name').fill('Ana Pérez');page.locator('#phone').fill('56911112222');page.locator('#entity-form button[type=submit]').click()
+    # Hostile client names must never create HTML or run JavaScript.
+    page.locator('#name').fill('<svg onload=window.__cf_xss=1></svg>')
+    page.locator('#entity-form button[type=submit]').click()
+    assert page.locator('svg[onload]').count()==0
+    assert page.evaluate('window.__cf_xss === undefined')
+    assert page.get_by_text('<svg onload=window.__cf_xss=1></svg>',exact=True).count()>=1
+
     assert page.get_by_text('Ana Pérez').count()>=1
     page.locator('[data-entity-edit]').click();page.locator('#name').fill('Ana Pérez Editada');page.locator('#entity-form button[type=submit]').click()
     page.locator('[data-nav=servicios]').click();page.locator('#name').fill('Revisión de tablero');page.locator('#price').fill('25000');page.locator('#entity-form button[type=submit]').click()
