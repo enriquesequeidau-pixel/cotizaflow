@@ -20,6 +20,8 @@ jobs:
         run: python -m unittest discover -s tests -p 'test_auth_policy.py' -v
       - name: Check hostile backup imports and allowlisted fields
         run: node --test tests/backup-security.test.mjs
+      - name: Verify printable branding rejects script and CSS injection
+        run: node --test tests/pro-safety.test.mjs
       - name: Confirm app-specific Supabase CORS (no payments or signups)
         run: python3 -m unittest discover -s tests -p 'test_edge_origins.py' -v
       - name: Verify production custom HTTPS routes
