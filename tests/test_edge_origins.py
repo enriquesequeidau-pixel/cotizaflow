@@ -29,6 +29,19 @@ class ProAccessBoundary(unittest.TestCase):
    urllib.request.urlopen(req,timeout=25)
   self.assertEqual(fail.exception.code,401)
 
+class ProEndpointBoundaries(unittest.TestCase):
+ def test_no_session_on_report(self):
+  req=urllib.request.Request(BASE+"cotizaflow-pro-report",method="POST",headers={"Origin":ORIGIN,"Content-Type":"application/json"},data=b'{}')
+  with self.assertRaises(urllib.error.HTTPError) as err:
+   urllib.request.urlopen(req,timeout=25)
+  self.assertEqual(err.exception.code,401)
+
+ def test_no_session_on_checkout_status(self):
+  req=urllib.request.Request(BASE+"cotizaflow-mp-checkout",method="POST",headers={"Origin":ORIGIN,"Content-Type":"application/json"},data=b'{"action":"status"}')
+  with self.assertRaises(urllib.error.HTTPError) as err:
+   urllib.request.urlopen(req,timeout=25)
+  self.assertEqual(err.exception.code,401)
+
 class RetiredStripeSafety(unittest.TestCase):
  def test_stripe_billing_and_webhook_stay_disabled(self):
   import json
