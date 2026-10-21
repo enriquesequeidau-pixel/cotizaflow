@@ -29,7 +29,14 @@ with sync_playwright() as pw:
  page.wait_for_timeout(600)
  assert not errors,errors
  issues=page.evaluate("window.__cspIssues")
- assert not issues,issues
+ # Cloudflare injects an optional analytics beacon after proxying. The site's
+ # deliberately strict CSP blocks it; this is not part of CotizaFlow's app code.
+ unrelated=[v for v in issues if not (
+  v["directive"]=="script-src-elem" and
+  v["blocked"].startswith("https://static.cloudflareinsights.com/beacon.min.js/")
+ )]
+ assert not unrelated,unrelated
+ if issues:print("INFO: optional Cloudflare Insights beacon intentionally blocked by strict app CSP")
  print("PASS CotizaFlow public HTTPS + cloud account entry + core editor; no CSP violation")
  ctx.close()
  browser.close()
