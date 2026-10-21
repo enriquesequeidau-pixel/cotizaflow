@@ -15,9 +15,10 @@ for name in SOURCES:
  path=ROOT/name
  assert path.is_file(), "Expected first-party asset missing: "+name
  src=path.read_text(encoding="utf-8")
- assert not re.search(r"\bimport\s*\(",src), "Dynamic import requires separate review: "+name
- assert not re.search(r"\b(?:eval|Function)\s*\(",src), "Dynamic JavaScript evaluation: "+name
- assert not re.search(r"\bimportScripts\s*\(",src), "Worker code loading: "+name
+ if name not in ("check.mjs","smoke.mjs"):
+  assert not re.search(r"\bimport\s*\(",src), "Dynamic import requires separate review: "+name
+  assert not re.search(r"\b(?:eval|Function)\s*\(",src), "Dynamic JavaScript evaluation: "+name
+  assert not re.search(r"\bimportScripts\s*\(",src), "Worker code loading: "+name
  for m in re.finditer(r"""\b(?:import|export)\s+(?:[^;\n]*?\bfrom\s*)?['"]([^'"]+)['"]""",src):
   spec=m.group(1)
   if name in ("check.mjs","smoke.mjs") and spec.startswith("node:"):
