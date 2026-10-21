@@ -29,5 +29,17 @@ class ProAccessBoundary(unittest.TestCase):
    urllib.request.urlopen(req,timeout=25)
   self.assertEqual(fail.exception.code,401)
 
+class RetiredStripeSafety(unittest.TestCase):
+ def test_stripe_billing_and_webhook_stay_disabled(self):
+  import json
+  for slug in ("cotizaflow-billing","cotizaflow-stripe-webhook"):
+   with self.subTest(slug=slug):
+    req=urllib.request.Request(BASE+slug,method="POST",
+     headers={"Origin":ORIGIN,"Content-Type":"application/json"},data=b'{}')
+    with self.assertRaises(urllib.error.HTTPError) as failed:
+     urllib.request.urlopen(req,timeout=25)
+    self.assertEqual(failed.exception.code,503)
+    self.assertEqual(json.loads(failed.exception.read().decode())["error"],"stripe_legacy_disabled")
+
 if __name__=="__main__":
  unittest.main()
