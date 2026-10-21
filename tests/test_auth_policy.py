@@ -17,5 +17,7 @@ class AuthPolicy(unittest.TestCase):
         self.assertIn("auth('signup?redirect_to='+encodeURIComponent(new URL(location.pathname,location.origin).href)",src)
         self.assertNotIn('promoflash.sequeidaulabs.com',src)
         self.assertNotIn('misterioya.sequeidaulabs.com',src)
+        self.assertIn("fetch(API+'/auth/v1/logout'",src)
+        self.assertIn('saveSession(null)',src)
 if __name__=='__main__':
     unittest.main()
