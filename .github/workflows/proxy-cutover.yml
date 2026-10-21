@@ -1,0 +1,23 @@
+name: CotizaFlow Cloudflare cutover browser checks
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'tests/live-cloudflare-cutover.py'
+      - '.github/workflows/proxy-cutover.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify-proxy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install playwright==1.55.0
+      - run: python -m playwright install --with-deps chromium
+      - name: Check live anonymous UI without logins, registrations or billing
+        run: python tests/live-cloudflare-cutover.py
