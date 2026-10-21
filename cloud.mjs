@@ -17,7 +17,26 @@ const state=msg=>{$('cf-cloud-status').textContent=msg;};
 function renderSession(){let logged=!!session?.access_token;$('cf-login').hidden=logged;$('cf-session').hidden=!logged;$('cf-who').textContent=logged?'Sesión iniciada: '+(session.user?.email||'usuario'):'';}
 function saveSession(s){session=s;if(s)sessionStorage.setItem(SESSION_KEY,JSON.stringify(s));else sessionStorage.removeItem(SESSION_KEY);renderSession();}
 async function auth(path,payload){let r=await fetch(`${API}/auth/v1/${path}`,{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify(payload)});let j=await r.json().catch(()=>({}));if(!r.ok)throw Error(j.msg||j.error_description||j.message||`HTTP ${r.status}`);return j;}
-async function token(){if(!session?.access_token)throw Error('Inicia sesión primero.');if(session.expires_at && Date.now()/1000>session.expires_at-60){const n=await auth('token?grant_type=refresh_token',{refresh_token:session.refresh_token});saveSession({...n,expires_at:Math.floor(Date.now()/1000)+n.expires_in});}return session.access_token;}
+let refreshPending=null;
+async function token(){
+ if(!session?.access_token)throw Error('Inicia sesión primero.');
+ if(session.expires_at && Date.now()/1000>session.expires_at-60){
+  if(!session.refresh_token)throw Error('Tu sesión venció. Inicia sesión nuevamente.');
+  if(!refreshPending){
+   const previousRefreshToken=session.refresh_token;
+   refreshPending=auth('token?grant_type=refresh_token',{refresh_token:previousRefreshToken}).then(n=>{
+    if(!session?.access_token)throw Error('Sesión cerrada. Inicia sesión nuevamente.');
+    if(session.refresh_token!==previousRefreshToken)return session.access_token;
+    saveSession({...n,expires_at:Math.floor(Date.now()/1000)+n.expires_in});
+    return session.access_token;
+   }).finally(()=>{refreshPending=null;});
+  }
+  return refreshPending;
+ }
+ return session.access_token;
+}
+// Both cloud backup and the Pro panel use one refresh routine per browser tab.
+window.CotizaFlowSession=Object.freeze({token});
 async function dataRequest(method,body){const access=await token();const response=await fetch(`${API}/rest/v1/cotizaflow_user_data?user_id=eq.${encodeURIComponent(session.user.id)}&select=data,version,updated_at`,{method,headers:{apikey:KEY,Authorization:`Bearer ${access}`,'Content-Type':'application/json',...(method==='POST'?{Prefer:'resolution=merge-duplicates,return=representation'}:{})},...(body?{body:JSON.stringify(body)}:{})});const j=await response.json().catch(()=>null);if(!response.ok)throw Error(j?.message||`Error de nube ${response.status}`);return j;}
 let recoveryToken=null;
 const resetURL=new URL(location.href);
