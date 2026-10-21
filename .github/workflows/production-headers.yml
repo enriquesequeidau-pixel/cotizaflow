@@ -1,0 +1,50 @@
+name: Production HTTP security headers
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "21 13 * * *"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  headers:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Inspect canonical HTTPS response
+        env:
+          APP_URL: "https://cotizaflow.sequeidaulabs.com/"
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --location --retry 2 --max-time 25 --dump-header /tmp/security-headers.txt --output /dev/null "$APP_URL"
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          raw = Path('/tmp/security-headers.txt').read_text(errors='replace')
+          blocks = [s.strip() for s in raw.split('\r\n\r\n') if s.strip().startswith('HTTP/')]
+          if not blocks: blocks = [s.strip() for s in raw.split('\n\n') if s.strip().startswith('HTTP/')]
+          if not blocks: raise SystemExit('No HTTP response headers captured')
+          headers = {}
+          for line in blocks[-1].splitlines()[1:]:
+              if ':' in line:
+                  k,v=line.split(':',1)
+                  headers[k.strip().lower()]=v.strip()
+          expected={
+            'strict-transport-security':lambda v:'max-age=' in v.lower(),
+            'content-security-policy':lambda v:bool(v.strip()),
+            'x-content-type-options':lambda v:v.lower()=='nosniff',
+            'referrer-policy':lambda v:bool(v.strip()),
+            'x-frame-options':lambda v:v.lower() in ('deny','sameorigin') or ('frame-ancestors' in headers.get('content-security-policy','')),
+          }
+          failed=[]
+          print('Production response from:',os.environ.get('APP_URL'))
+          for key,valid in expected.items():
+              v=headers.get(key,'')
+              ok=bool(v) and valid(v)
+              if key=='x-frame-options' and not ok and 'frame-ancestors' in headers.get('content-security-policy',''): ok=True
+              print(('PASS' if ok else 'MISSING')+' '+key)
+              if not ok:failed.append(key)
+          if failed:raise SystemExit('Required production HTTP header(s) missing: '+', '.join(failed))
+          PY
