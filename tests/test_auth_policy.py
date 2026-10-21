@@ -23,6 +23,13 @@ class AuthPolicy(unittest.TestCase):
         self.assertNotIn("grant_type=refresh_token",pro)
         self.assertNotIn("sessionStorage.setItem(SESSION,JSON.stringify",pro)
 
+    def test_pro_entitlement_cache_follows_current_auth_token(self):
+        pro=(ROOT/'pro.mjs').read_text('utf-8')
+        self.assertIn('verifiedToken=verified?token:null',pro)
+        self.assertIn('verifiedToken!==token',pro)
+        self.assertIn('const token=await sessionToken();if(!verified',pro)
+        self.assertIn('verified=false;verifiedToken=null;await entitlement()',pro)
+        self.assertNotIn("grant_type=refresh_token",pro)
     def test_app_specific_auth_redirect_and_session(self):
         src=(ROOT/'cloud.mjs').read_text('utf-8')
         self.assertIn("const SESSION_KEY='cotizaflow-cloud-session-v1'",src)
