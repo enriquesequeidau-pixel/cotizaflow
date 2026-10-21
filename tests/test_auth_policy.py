@@ -10,6 +10,14 @@ class AuthPolicy(unittest.TestCase):
         self.assertIn("Ingresa correo válido y contraseña de al menos 10 caracteres para crear la cuenta.",src)
         self.assertIn("if(pass.length<10)",src)
         self.assertIn("auth('token?grant_type=password'",src)
+    def test_one_refresh_owner_for_backup_and_billing(self):
+        cloud=(ROOT/'cloud.mjs').read_text('utf-8')
+        billing=(ROOT/'plan-checkout.mjs').read_text('utf-8')
+        self.assertIn("window.CotizaFlowSession=Object.freeze({token})",cloud)
+        self.assertIn('if(!refreshPending)',cloud)
+        self.assertIn('return refreshPending',cloud)
+        self.assertIn('window.CotizaFlowSession.token()',billing)
+        self.assertNotIn("grant_type=refresh_token",billing)
     def test_app_specific_auth_redirect_and_session(self):
         src=(ROOT/'cloud.mjs').read_text('utf-8')
         self.assertIn("const SESSION_KEY='cotizaflow-cloud-session-v1'",src)
