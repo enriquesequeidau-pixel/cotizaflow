@@ -1,4 +1,4 @@
-"""Build-time supply chain guard: CotizaFlow ships without third-party JS packages."""
+"""Build-time supply-chain guard: CotizaFlow ships without third-party JS packages."""
 import re
 from pathlib import Path
 
@@ -15,11 +15,10 @@ for name in SOURCES:
  path=ROOT/name
  assert path.is_file(), "Expected first-party asset missing: "+name
  src=path.read_text(encoding="utf-8")
- # Only relative ES module imports; no CDN/npm imports and no dynamic loading.
- assert not re.search(r"\\bimport\\s*\\(",src), "Dynamic import requires separate review: "+name
- assert not re.search(r"\\b(?:eval|Function)\\s*\\(",src), "Dynamic JavaScript evaluation: "+name
- assert not re.search(r"\\b(?:importScripts)\\s*\\(",src), "Worker code loading: "+name
- for m in re.finditer(r"""\\b(?:import|export)\\s+(?:(?:[^;\\n]*?\\bfrom\\s*)?)['"]([^'"]+)['"]""",src):
+ assert not re.search(r"\bimport\s*\(",src), "Dynamic import requires separate review: "+name
+ assert not re.search(r"\b(?:eval|Function)\s*\(",src), "Dynamic JavaScript evaluation: "+name
+ assert not re.search(r"\bimportScripts\s*\(",src), "Worker code loading: "+name
+ for m in re.finditer(r"""\b(?:import|export)\s+(?:[^;\n]*?\bfrom\s*)?['"]([^'"]+)['"]""",src):
   spec=m.group(1)
   assert spec.startswith("./"), "External module must be audited before launch: "+name+" -> "+spec
   dependency=(path.parent/spec).resolve()
@@ -27,7 +26,7 @@ for name in SOURCES:
   checked+=1
 
 html=(ROOT/"index.html").read_text(encoding="utf-8")
-for src in re.findall(r'<script[^>]*\\bsrc=["\\']([^"\\']+)["\\']',html,re.I):
+for src in re.findall(r"<script[^>]*\bsrc=['\"]([^'\"]+)['\"]",html,re.I):
  assert src.endswith(".mjs") and (ROOT/src).is_file(), "New external script requires a security audit: "+src
 assert "github-actions" in (ROOT/".github/dependabot.yml").read_text(encoding="utf-8")
 print(f"PASS: no third-party JS packages, {checked} resolved first-party module imports, and GitHub Actions updates monitored")
