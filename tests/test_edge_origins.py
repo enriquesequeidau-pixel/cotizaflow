@@ -1,5 +1,5 @@
 """Non-payment OPTIONS-only CORS smoke checks for this app's isolated Edge Functions."""
-import unittest,urllib.request
+import unittest,urllib.request,urllib.error
 BASE="https://nrwbnjjaqilgreqhpcov.supabase.co/functions/v1/"
 ORIGIN="https://cotizaflow.sequeidaulabs.com"
 FOREIGN="https://promoflash.sequeidaulabs.com"
@@ -20,5 +20,14 @@ class EdgeOrigins(unittest.TestCase):
     self.assertIn(code,(200,204),slug)
     self.assertEqual(allow,ORIGIN,slug)
     self.assertNotEqual(allow,FOREIGN,slug)
+
+class ProAccessBoundary(unittest.TestCase):
+ def test_missing_session_is_denied_without_touching_payments(self):
+  req=urllib.request.Request(BASE+"cotizaflow-pro-access",method="POST",
+   headers={"Origin":ORIGIN,"Content-Type":"application/json"},data=b'{}')
+  with self.assertRaises(urllib.error.HTTPError) as fail:
+   urllib.request.urlopen(req,timeout=25)
+  self.assertEqual(fail.exception.code,401)
+
 if __name__=="__main__":
  unittest.main()
