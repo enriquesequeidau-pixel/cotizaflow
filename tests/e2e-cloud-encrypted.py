@@ -52,17 +52,11 @@ try:
   page.get_by_text('No se pudo descifrar',exact=False).wait_for(timeout=25000)
   assert page.evaluate("localStorage.getItem('cotizaflow-v1')") is None
   page.locator('#cf-backup-key').fill(PASSWORD)
-  page.locator('#cf-pull').click()
-  # Respect the app's strict CSP: Playwright wait_for_function uses unsafe-eval.
-  # Poll via its trusted page.evaluate transport instead.
-  for attempt in range(100):
-   try:
-    if page.evaluate("() => localStorage.getItem('cotizaflow-v1') !== null"): break
-   except Exception:
-    pass  # Brief navigation during reload
-   time.sleep(.1)
-  else: raise AssertionError('Encrypted restoration never populated local storage')
-  restored=json.loads(page.evaluate("localStorage.getItem('cotizaflow-v1')"))
+  with page.expect_navigation(wait_until='domcontentloaded',timeout=25000):
+   page.locator('#cf-pull').click()
+  restored_raw=page.evaluate("() => localStorage.getItem('cotizaflow-v1')")
+  assert restored_raw is not None, 'Encrypted restoration did not save local data'
+  restored=json.loads(restored_raw)
   assert restored==DATA,(restored,DATA)
   assert events['write']==1 and events['read']>=3
   browser.close()
