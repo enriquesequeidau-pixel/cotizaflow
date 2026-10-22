@@ -18,7 +18,7 @@ try:
   stored={'data':None,'version':0}
   events={'write':0,'read':0}
   page.on('dialog',lambda dialog:dialog.accept())
-  page.add_init_script(f"""() => {{
+  page.add_init_script(f"""{{
     sessionStorage.setItem('cotizaflow-cloud-session-v1',JSON.stringify({json.dumps(SESSION)}));
     localStorage.setItem('cotizaflow-v1',JSON.stringify({json.dumps(DATA)}));
   }}""")
