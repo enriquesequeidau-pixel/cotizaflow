@@ -1,8 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {webcrypto} from 'node:crypto';
 import {encryptCloudBackup,decryptCloudBackup,isEncryptedBackup} from '../cloud-crypto.mjs';
-globalThis.crypto=webcrypto;
 globalThis.btoa=value=>Buffer.from(value,'binary').toString('base64');
 globalThis.atob=value=>Buffer.from(value,'base64').toString('binary');
 const uid='c1ad1a6d-926e-4f23-8b10-6247f630eaf1';
