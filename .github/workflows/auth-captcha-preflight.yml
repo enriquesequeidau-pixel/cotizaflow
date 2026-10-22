@@ -1,0 +1,40 @@
+name: Auth CAPTCHA coordination guard
+on:
+  push:
+    paths:
+      - 'auth-captcha.mjs'
+      - 'cloud.mjs'
+      - '.github/workflows/auth-captcha-preflight.yml'
+  pull_request:
+    paths:
+      - 'auth-captcha.mjs'
+      - 'cloud.mjs'
+      - '.github/workflows/auth-captcha-preflight.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  captcha-preflight:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Ensure CAPTCHA stays fail-safe before coordinated rollout
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          shared = Path('auth-captcha.mjs').read_text('utf-8')
+          app = Path('cloud.mjs').read_text('utf-8')
+          checks = {
+            'not enabled without central Auth configuration': 'export const AUTH_CAPTCHA_ENABLED=false;' in shared,
+            'challenge expires safely': "'expired-callback'" in shared,
+            'challenge error clears token': "'error-callback'" in shared,
+            'token reset after attempt': 'captcha.reset()' in app,
+            'auth flow requests a challenge token': 'captcha.requiredToken()' in app,
+            'central module is imported': "from './auth-captcha.mjs'" in app,
+          }
+          for name, ok in checks.items():
+            print(f"{'PASS' if ok else 'FAIL'}: {name}")
+          if not all(checks.values()):
+            raise SystemExit('Auth CAPTCHA preflight failed; coordinate frontend and Supabase Auth before enabling CAPTCHA.')
+          PY
