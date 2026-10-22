@@ -20,10 +20,12 @@ jobs:
           node-version: '22'
       - name: Audit all first-party imports and reject unexpected dependencies
         run: python3 tests/test_dependency_integrity.py
+      - name: Verify client-side backup encryption and safe restore compatibility
+        run: node --test tests/cloud-encryption.test.mjs
       - name: Verify syntax of all shipped application modules
         shell: bash
         run: |
           set -euo pipefail
-          for FILE in app.mjs backup.mjs check.mjs cloud.mjs core.mjs plan-checkout.mjs pro-safety.mjs pro.mjs workflow.mjs smoke.mjs; do
+          for FILE in app.mjs backup.mjs check.mjs cloud.mjs cloud-crypto.mjs core.mjs plan-checkout.mjs pro-safety.mjs pro.mjs workflow.mjs smoke.mjs; do
             node --check "$FILE"
           done
