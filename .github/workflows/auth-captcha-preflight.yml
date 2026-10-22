@@ -4,11 +4,15 @@ on:
     paths:
       - 'auth-captcha.mjs'
       - 'cloud.mjs'
+      - 'index.html'
+      - 'tests/test_turnstile_csp.py'
       - '.github/workflows/auth-captcha-preflight.yml'
   pull_request:
     paths:
       - 'auth-captcha.mjs'
       - 'cloud.mjs'
+      - 'index.html'
+      - 'tests/test_turnstile_csp.py'
       - '.github/workflows/auth-captcha-preflight.yml'
   workflow_dispatch:
 permissions:
@@ -18,6 +22,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Verify Turnstile script and frame CSP policy
+        run: python3 tests/test_turnstile_csp.py
       - name: Ensure CAPTCHA stays fail-safe before coordinated rollout
         shell: bash
         run: |
