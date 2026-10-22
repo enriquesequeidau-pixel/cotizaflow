@@ -7,7 +7,7 @@ function setup(search){
  const elements=[];
  const host={hidden:true,dataset:{},prepend(el){elements.push(el)},append(el){elements.push(el)},querySelector(selector){return selector==='[data-turnstile-qa-status]'?elements.find(el=>el.attribute==='data-turnstile-qa-status'):null}};
  globalThis.location={search};
- globalThis.document={createElement(tag){return {tag,attribute:null,textContent:'',setAttribute(name){this.attribute=name}}},head:{append(el){scripts.push(el)}}};
+ globalThis.document={createElement(tag){return {tag,attribute:null,textContent:'',setAttribute(name){this.attribute=name}}},head:{appendChild(el){scripts.push(el)}}};
  let widgetOptions,resetCount=0;
  globalThis.window={turnstile:{render(_host,options){widgetOptions=options;return 42},reset(){resetCount++}}};
  return {host,scripts,elements,getOptions:()=>widgetOptions,getResetCount:()=>resetCount};
