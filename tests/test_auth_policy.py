@@ -23,6 +23,14 @@ class AuthPolicy(unittest.TestCase):
         self.assertNotIn("grant_type=refresh_token",pro)
         self.assertNotIn("sessionStorage.setItem(SESSION,JSON.stringify",pro)
 
+    def test_rejected_refresh_revokes_only_invalid_session(self):
+        cloud=(ROOT/'cloud.mjs').read_text('utf-8')
+        self.assertIn('error.status=r.status',cloud)
+        self.assertIn('error.status===400||error.status===401',cloud)
+        self.assertIn('session?.refresh_token===previousRefreshToken',cloud)
+        self.assertIn('saveSession(null);throw Error(\'Tu sesión venció.',cloud)
+        self.assertIn('throw error;}).finally(()=>{refreshPending=null;});',cloud)
+
     def test_pro_entitlement_cache_follows_current_auth_token(self):
         pro=(ROOT/'pro.mjs').read_text('utf-8')
         self.assertIn('verifiedToken=verified?token:null',pro)

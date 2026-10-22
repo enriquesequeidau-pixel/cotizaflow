@@ -19,12 +19,12 @@ const $=id=>dialog.querySelector('#'+id);
 const state=msg=>{$('cf-cloud-status').textContent=msg;};
 function renderSession(){let logged=!!session?.access_token;$('cf-login').hidden=logged;$('cf-session').hidden=!logged;$('cf-who').textContent=logged?'Sesión iniciada: '+(session.user?.email||'usuario'):'';}
 function saveSession(s){session=s;if(s)sessionStorage.setItem(SESSION_KEY,JSON.stringify(s));else sessionStorage.removeItem(SESSION_KEY);renderSession();}
-async function auth(path,payload){let r=await fetch(`${API}/auth/v1/${path}`,{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify(payload)});let j=await r.json().catch(()=>({}));if(!r.ok)throw Error(j.msg||j.error_description||j.message||`HTTP ${r.status}`);return j;}
+async function auth(path,payload){let r=await fetch(`${API}/auth/v1/${path}`,{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify(payload)});let j=await r.json().catch(()=>({}));if(!r.ok){const error=new Error(j.msg||j.error_description||j.message||`HTTP ${r.status}`);error.status=r.status;throw error;}return j;}
 let refreshPending=null;
 async function token(){
  if(!session?.access_token)throw Error('Inicia sesión primero.');
  if(session.expires_at && Date.now()/1000>session.expires_at-60){
-  if(!session.refresh_token)throw Error('Tu sesión venció. Inicia sesión nuevamente.');
+  if(!session.refresh_token){saveSession(null);throw Error('Tu sesión venció. Inicia sesión nuevamente.');}
   if(!refreshPending){
    const previousRefreshToken=session.refresh_token;
    refreshPending=auth('token?grant_type=refresh_token',{refresh_token:previousRefreshToken}).then(n=>{
@@ -32,7 +32,7 @@ async function token(){
     if(session.refresh_token!==previousRefreshToken)return session.access_token;
     saveSession({...n,expires_at:Math.floor(Date.now()/1000)+n.expires_in});
     return session.access_token;
-   }).finally(()=>{refreshPending=null;});
+   }).catch(error=>{if(session?.refresh_token===previousRefreshToken&&(error.status===400||error.status===401))saveSession(null);throw error;}).finally(()=>{refreshPending=null;});
   }
   return refreshPending;
  }
