@@ -18,7 +18,8 @@ try:
   stored={'data':None,'version':0}
   events={'write':0,'read':0}
   page.on('dialog',lambda dialog:dialog.accept())
-  page.add_init_script(f"""{{
+  page.add_init_script(f"""if (!sessionStorage.getItem("cf-e2e-seeded")) {{
+    sessionStorage.setItem('cf-e2e-seeded','1');
     sessionStorage.setItem('cotizaflow-cloud-session-v1',JSON.stringify({json.dumps(SESSION)}));
     localStorage.setItem('cotizaflow-v1',JSON.stringify({json.dumps(DATA)}));
   }}""")
@@ -52,7 +53,15 @@ try:
   assert page.evaluate("localStorage.getItem('cotizaflow-v1')") is None
   page.locator('#cf-backup-key').fill(PASSWORD)
   page.locator('#cf-pull').click()
-  # Respect the app's strict CSP: Playwright wait_for_function uses unsafe-eval.\n  # Poll via its trusted page.evaluate transport instead.\n  for attempt in range(100):\n   try:\n    if page.evaluate("() => localStorage.getItem('cotizaflow-v1') !== null"): break\n   except Exception:\n    pass  # Brief navigation during reload\n   time.sleep(.1)\n  else: raise AssertionError('Encrypted restoration never populated local storage')
+  # Respect the app's strict CSP: Playwright wait_for_function uses unsafe-eval.
+  # Poll via its trusted page.evaluate transport instead.
+  for attempt in range(100):
+   try:
+    if page.evaluate("() => localStorage.getItem('cotizaflow-v1') !== null"): break
+   except Exception:
+    pass  # Brief navigation during reload
+   time.sleep(.1)
+  else: raise AssertionError('Encrypted restoration never populated local storage')
   restored=json.loads(page.evaluate("localStorage.getItem('cotizaflow-v1')"))
   assert restored==DATA,(restored,DATA)
   assert events['write']==1 and events['read']>=3
