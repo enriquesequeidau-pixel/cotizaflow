@@ -1,0 +1,50 @@
+name: Retired diagnostic exposure guard
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/diagnostic-exposure-guard.yml'
+  pull_request:
+    paths:
+      - '.github/workflows/diagnostic-exposure-guard.yml'
+  schedule:
+    - cron: '21 14 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  production-exposure-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Assert retired Mercado Pago diagnostic is not public
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          import urllib.error
+          import urllib.request
+
+          url = "https://nrwbnjjaqilgreqhpcov.supabase.co/functions/v1/cotizaflow-mp-diagnostic"
+          req = urllib.request.Request(url, headers={"User-Agent": "MicroApps-security-guard/1.0"})
+          try:
+              with urllib.request.urlopen(req, timeout=20) as r:
+                  status, body = r.status, r.read(16384).decode("utf-8", "replace")
+          except urllib.error.HTTPError as e:
+              status, body = e.code, e.read(16384).decode("utf-8", "replace")
+          # JWT must be enforced at the edge; 410 on an anonymous request
+          # is NOT sufficient to prove access control is enabled.
+          if status not in (401, 403):
+              raise SystemExit(f"FAIL: diagnostic public access status={status}, expected 401 or 403")
+          sensitive_fields = (
+              "checkout_credentials", "webhook_secret", "credential_family",
+              "seller_account", "seller_country", "sandbox_seller_verified",
+              "provider_connection", "checkout_enabled",
+          )
+          if any(field in body for field in sensitive_fields):
+              raise SystemExit("FAIL: operational metadata exposed to an unauthenticated caller")
+          print("PASS: retired diagnostic requires authorization and exposes no operational metadata")
+          PY
