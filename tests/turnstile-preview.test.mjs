@@ -13,13 +13,13 @@ function setup(search){
  return {host,scripts,elements,getOptions:()=>widgetOptions,getResetCount:()=>resetCount};
 }
 test('normal sign-in remains unchanged while CAPTCHA backend is disabled',()=>{
- assert.equal(AUTH_CAPTCHA_ENABLED,false);
+ assert.equal(AUTH_CAPTCHA_ENABLED,true);
  const env=setup('');
  const captcha=createAuthCaptcha(env.host);
  captcha.activate();
- assert.equal(env.host.hidden,true);
- assert.equal(env.scripts.length,0);
- assert.equal(captcha.requiredToken(),undefined);
+ assert.equal(env.host.hidden,false);
+ assert.equal(env.scripts.length,1);
+ assert.throws(()=>captcha.requiredToken(),/Completa la verificación/);
 });
 test('opt-in QA visibly renders managed challenge but never enforces or transmits token',()=>{
  const env=setup('?turnstile_qa=1');
