@@ -13,7 +13,7 @@ jobs:
 
     steps:
       - name: Descargar proyecto
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Instalar Node
         uses: actions/setup-node@v4
