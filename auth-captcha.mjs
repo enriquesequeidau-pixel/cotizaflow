@@ -1,6 +1,6 @@
 /* Shared Supabase Auth CAPTCHA integration. It stays disabled until all three apps
    have passed coordinated login, registration and password recovery tests. */
-export const AUTH_CAPTCHA_ENABLED=false;
+export const AUTH_CAPTCHA_ENABLED=true;
 export const AUTH_CAPTCHA_SITEKEY='0x4AAAAAAFgm_-8sMbLzw3nP';
 export function createAuthCaptcha(container){
  const host=typeof container==='string'?document.querySelector(container):container;

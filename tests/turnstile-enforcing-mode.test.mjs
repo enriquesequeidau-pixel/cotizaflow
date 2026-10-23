@@ -9,7 +9,7 @@ const original=fs.readFileSync(new URL('../auth-captcha.mjs',import.meta.url),'u
 
 function harness(enabled,search=''){
   const source=original
-    .replace('export const AUTH_CAPTCHA_ENABLED=false;', 'const AUTH_CAPTCHA_ENABLED='+String(enabled)+';')
+    .replace(/export const AUTH_CAPTCHA_ENABLED=(?:false|true);/, 'const AUTH_CAPTCHA_ENABLED='+String(enabled)+';')
     .replace('export const AUTH_CAPTCHA_SITEKEY=', 'const AUTH_CAPTCHA_SITEKEY=')
     .replace('export function createAuthCaptcha(', 'function createAuthCaptcha(');
   assert.notEqual(source,original,'feature flag source must be recognizable');

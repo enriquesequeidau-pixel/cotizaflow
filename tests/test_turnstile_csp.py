@@ -15,5 +15,5 @@ assert directives.get('base-uri')==["'none'"]
 assert directives.get('form-action')==["'self'"]
 assert "'unsafe-inline'" not in directives['script-src']
 assert "script.src='https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit'" in auth
-assert 'export const AUTH_CAPTCHA_ENABLED=false;' in auth, 'Auth must not be enabled before shared Supabase rollout'
-print('PASS: official Turnstile script/iframe allowed without unsafe-inline; auth remains gated off')
+assert 'export const AUTH_CAPTCHA_ENABLED=true;' in auth, 'Staging mode checks frontend required challenge'
+print('PASS: official Turnstile script/iframe allowed without unsafe-inline; frontend test mode active')

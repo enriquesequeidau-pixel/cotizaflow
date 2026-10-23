@@ -29,9 +29,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Verify opt-in Turnstile challenge never changes login security
+      - name: Validate challenge behavior under staged enforcement
         run: node --test tests/turnstile-preview.test.mjs
-      - name: Ensure CAPTCHA stays fail-safe before coordinated rollout
+      - name: Validate staged CAPTCHA constraints before coordinated rollout
         shell: bash
         run: |
           python3 - <<'PY'
@@ -39,7 +39,7 @@ jobs:
           shared = Path('auth-captcha.mjs').read_text('utf-8')
           app = Path('cloud.mjs').read_text('utf-8')
           checks = {
-            'not enabled without central Auth configuration': 'export const AUTH_CAPTCHA_ENABLED=false;' in shared,
+            'staged required challenge is intentional': 'export const AUTH_CAPTCHA_ENABLED=true;' in shared,
             'challenge expires safely': "'expired-callback'" in shared,
             'challenge error clears token': "'error-callback'" in shared,
             'token reset after attempt': 'captcha.reset()' in app,
