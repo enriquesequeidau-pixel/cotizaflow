@@ -1,0 +1,27 @@
+name: Auth CAPTCHA future enforcing-mode QA
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'auth-captcha.mjs'
+      - 'tests/turnstile-enforcing-mode.test.mjs'
+      - '.github/workflows/auth-captcha-enforcing-qa.yml'
+  pull_request:
+    paths:
+      - 'auth-captcha.mjs'
+      - 'tests/turnstile-enforcing-mode.test.mjs'
+      - '.github/workflows/auth-captcha-enforcing-qa.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  captcha-enforcing-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Exercise Turnstile fail-closed login, recovery, expiry and token reset
+        run: node --test tests/turnstile-enforcing-mode.test.mjs
