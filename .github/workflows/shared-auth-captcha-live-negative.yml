@@ -1,0 +1,55 @@
+name: Shared Auth live CAPTCHA negative verification
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/shared-auth-captcha-live-negative.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  captcha-negative:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Verify GoTrue rejects unauthenticated password sign-in without valid CAPTCHA
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          import urllib.request
+          import urllib.error
+
+          base = 'https://nrwbnjjaqilgreqhpcov.supabase.co/auth/v1/token?grant_type=password'
+          pubkey = 'sb_publishable_7aOw4W695bp3CIMYTO9E6Q_5VChQ6so'
+          fake = {'email':'captcha-smoke-no-such-account@example.invalid',
+                  'password':'intentionally-not-a-valid-password-20261023'}
+          for test,token in [('missing-token',None),('invalid-token','synthetic-invalid-captcha-do-not-accept')]:
+              body = dict(fake)
+              if token is not None:
+                  body['gotrue_meta_security']={'captcha_token':token}
+              request = urllib.request.Request(base,method='POST',
+                  data=json.dumps(body).encode(),
+                  headers={'apikey':pubkey,'Content-Type':'application/json',
+                           'Origin':'https://cotizaflow.sequeidaulabs.com'})
+              try:
+                  with urllib.request.urlopen(request,timeout=25) as result:
+                      status=result.status
+                      raw=result.read(1000).decode('utf8','replace')
+              except urllib.error.HTTPError as error:
+                  status=error.code
+                  raw=error.read(1000).decode('utf8','replace')
+              try:
+                  response=json.loads(raw)
+              except ValueError:
+                  response={'message':'invalid response'}
+              code=str(response.get('code',''))
+              msg=str(response.get('msg',response.get('message',response.get('error_description',''))))
+              print(test, 'status:',status,'code:',code,'message:',msg[:160])
+              if 200 <= status < 300:
+                  raise SystemExit('FAIL: invalid test credentials unexpectedly signed in')
+              if 'captcha' not in (code+' '+msg).lower():
+                  raise SystemExit('FAIL: server did not reject the request for CAPTCHA; Auth protection may be disabled')
+          print('PASS: Supabase Auth rejects both missing and invalid CAPTCHA tokens.')
+          print('This validates only server-side negative behavior, not UI challenge or positive login.')
+          PY
