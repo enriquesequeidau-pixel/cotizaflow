@@ -31,12 +31,13 @@ class AuthPolicy(unittest.TestCase):
         self.assertIn('saveSession(null);throw Error(\'Tu sesión venció.',cloud)
         self.assertIn('throw error;}).finally(()=>{refreshPending=null;});',cloud)
 
-    def test_pro_entitlement_cache_follows_current_auth_token(self):
+    def test_pro_entitlement_revalidated_for_every_privileged_action(self):
         pro=(ROOT/'pro.mjs').read_text('utf-8')
-        self.assertIn('verifiedToken=verified?token:null',pro)
-        self.assertIn('verifiedToken!==token',pro)
-        self.assertIn('const token=await sessionToken();if(!verified',pro)
-        self.assertIn('verified=false;verifiedToken=null;await entitlement()',pro)
+        self.assertIn('const token=await sessionToken();const r=await fetch(',pro)
+        self.assertIn('verified=false;try{await entitlement()',pro)
+        self.assertIn("('cf-pro-content').hidden=true",pro)
+        self.assertNotIn('verifiedToken',pro)
+        self.assertNotIn('expires',pro)
         self.assertNotIn("grant_type=refresh_token",pro)
     def test_app_specific_auth_redirect_and_session(self):
         src=(ROOT/'cloud.mjs').read_text('utf-8')
