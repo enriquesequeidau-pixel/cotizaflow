@@ -19,7 +19,7 @@ test('stale and forged session markers are rejected',()=>{
 });
 test('only verified server payment can be described as Pro active',()=>{
  assert.match(subscriptionReturnMessage({status:'authorized',plan:'pro',payment_verified:false}),/Todavía no/);
- assert.match(subscriptionReturnMessage({status:'pending',plan:'pro',payment_verified:true}),/confirmado/);
+ assert.match(subscriptionReturnMessage({status:'pending',plan:'pro',payment_verified:true}),/Todavía no/);
  assert.match(subscriptionReturnMessage({status:'authorized',plan:'pro',payment_verified:true}),/activo/);
  assert.doesNotMatch(subscriptionReturnMessage({status:'pending'}),/activo/);
  assert.match(subscriptionReturnMessage({status:'cancelled'}),/no está activa/);
