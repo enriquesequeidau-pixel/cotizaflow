@@ -39,6 +39,20 @@ class ReleaseSmoke(unittest.TestCase):
         self.assertIn("await ensurePro()", pro)
         self.assertNotRegex(pro, r"localStorage\.setItem\(['\"](?:isPro|proEnabled|plan_pro)")
 
+    def test_pro_actions_revalidate_entitlement_after_cancellation(self):
+        # A verified subscription can be cancelled or refunded at any moment.
+        # Client-side authorization must never be cached for three minutes.
+        pro = (ROOT / "pro.mjs").read_text(encoding="utf-8")
+        ensure = re.search(r"async function ensurePro\(\)\{(.*?)\}\nfunction safeName", pro, re.S)
+        self.assertIsNotNone(ensure, "Missing Pro action guard")
+        guard = ensure.group(1)
+        self.assertIn("verified=false", guard)
+        self.assertIn("await entitlement()", guard)
+        self.assertIn("('cf-pro-content').hidden=true", guard)
+        self.assertNotIn("expires", pro)
+        self.assertNotIn("verifiedToken", pro)
+        self.assertGreaterEqual(pro.count("await ensurePro()"), 4)
+
     def test_no_obvious_server_secrets_in_static_files(self):
         for name in ("index.html", "app.mjs", "cloud.mjs", "pro.mjs"):
             content = (ROOT / name).read_text(encoding="utf-8")

@@ -26,6 +26,8 @@ assert "history.replaceState(history.state,'',location.pathname+location.search)
 assert "const redirectTo=new URL(location.pathname,location.origin).href" in cloud
 assert "window.CotizaFlowSession.token()" in checkout
 assert "window.CotizaFlowSession.token()" in pro
-assert "verifiedToken!==token" in pro
+assert "verified=false;try{await entitlement()" in pro
+assert "const token=await sessionToken();const r=await fetch(" in pro
+assert "verifiedToken" not in pro
 assert "localStorage.setItem('isPro'" not in pro
-print("PASS: per-tab token storage, local logout, invalid-refresh cleanup, own-app recovery redirect, Pro-token isolation")
+print("PASS: per-tab token storage, local logout, invalid-refresh cleanup, own-app recovery redirect, per-action Pro revalidation")
