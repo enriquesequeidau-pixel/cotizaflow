@@ -23,7 +23,7 @@ jobs:
   captcha-preflight:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Verify Turnstile script and frame CSP policy
         run: python3 tests/test_turnstile_csp.py
       - uses: actions/setup-node@v4
