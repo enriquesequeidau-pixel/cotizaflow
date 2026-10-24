@@ -24,6 +24,8 @@ jobs:
         run: node --test tests/backup-security.test.mjs
       - name: Confirm checkout return never grants unverified Pro
         run: node --test test-billing-return.mjs
+      - name: Recheck report authorization after cancellation or status outage
+        run: node --test tests/pro-report-reverify.test.cjs
       - name: Verify Pro API response allowlists and quota rejection
         run: node --test tests/edge-response-contract.test.cjs
       - name: Verify printable branding rejects script and CSS injection

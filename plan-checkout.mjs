@@ -113,6 +113,7 @@ import {rememberCheckoutRedirect,consumeCheckoutRedirect,subscriptionReturnMessa
     report.onclick = async () => {
       if (report.disabled) return;
       report.disabled = true;
+      let reportOutcome = '';
       setStatus('Preparando el reporte seguro…');
       try {
         const access = await token();
@@ -134,9 +135,14 @@ import {rememberCheckoutRedirect,consumeCheckoutRedirect,subscriptionReturnMessa
         link.click();
         link.remove();
         setTimeout(() => URL.revokeObjectURL(url), 60000);
-        setStatus('Reporte generado. Revisa tus descargas.');
-      } catch (error) { setStatus(error.message || 'No se pudo generar el reporte.'); }
-      finally { report.disabled = false; }
+        reportOutcome = 'Reporte generado. Revisa tus descargas.';
+      } catch (error) { reportOutcome = error.message || 'No se pudo generar el reporte.'; }
+      finally {
+        // Never restore Pro actions unconditionally after a download: the payment
+        // may have been cancelled or revoked while the report was being prepared.
+        await refresh();
+        if (!report.disabled && reportOutcome) setStatus(reportOutcome);
+      }
     };
     subscribe.onclick = async () => {
       if (subscribe.disabled) return;
