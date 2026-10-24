@@ -27,7 +27,7 @@ export function consumeCheckoutRedirect(store, now = Date.now()) {
 
 export function subscriptionReturnMessage(status) {
   // A URL, an authorized preapproval, or a pending checkout cannot activate Pro.
-  if (status?.plan === 'pro' && status?.payment_verified === true) {
+  if (status?.status === 'authorized' && status?.plan === 'pro' && status?.payment_verified === true) {
     return '¡Pago confirmado! Tu plan Pro ya está activo.';
   }
   if (status?.status === 'cancelled' || status?.status === 'expired') {
