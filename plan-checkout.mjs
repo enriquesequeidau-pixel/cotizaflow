@@ -1,3 +1,4 @@
+import {rememberCheckoutRedirect,consumeCheckoutRedirect,subscriptionReturnMessage} from './billing-return.mjs';
 /* CotizaFlow — consulta de plan Mercado Pago Chile. Sin cobros hasta habilitación y validación en servidor. */
     const BASE = 'https://nrwbnjjaqilgreqhpcov.supabase.co';
     const PUBLIC_KEY = 'sb_publishable_7aOw4W695bp3CIMYTO9E6Q_5VChQ6so';
@@ -96,6 +97,10 @@
       }
     }
     openButton.onclick = () => { dialog.showModal(); void refresh(); };
+    if (consumeCheckoutRedirect(sessionStorage)) {
+      dialog.showModal();
+      void callBilling('status').then(result => {setStatus(subscriptionReturnMessage(result)); void refresh();}).catch(() => setStatus('No se pudo verificar tu suscripción. Vuelve a consultar el estado desde esta ventana.'));
+    }
     dialog.querySelector('#cf-plan-refresh').onclick = () => { void refresh(); };
     dialog.querySelector('#cf-plan-close').onclick = () => dialog.close();
     cancel.onclick = async () => {
@@ -144,6 +149,7 @@
         if (u.protocol !== 'https:' || !['mercadopago.cl','mercadopago.com'].some(host => u.hostname === host || u.hostname.endsWith('.' + host))) {
           throw new Error('Enlace de pago no permitido.');
         }
+        rememberCheckoutRedirect(sessionStorage);
         location.assign(u.href);
       } catch (error) {
         setStatus(error.message || 'No se pudo crear el checkout.');
