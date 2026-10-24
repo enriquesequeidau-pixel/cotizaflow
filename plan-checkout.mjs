@@ -46,6 +46,9 @@ import {rememberCheckoutRedirect,consumeCheckoutRedirect,subscriptionReturnMessa
     const cancel = dialog.querySelector('#cf-plan-cancel');
     const report = dialog.querySelector('#cf-plan-report');
     const setStatus = (message) => { status.textContent = message; };
+    // Ignore out-of-order status responses: an older Pro response must not
+    // re-enable paid actions after a newer cancellation or access denial.
+    let refreshGeneration = 0;
     const readSession = () => {
       try { return JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null'); }
       catch { return null; }
@@ -69,12 +72,14 @@ import {rememberCheckoutRedirect,consumeCheckoutRedirect,subscriptionReturnMessa
       return payload;
     }
     async function refresh() {
+      const generation = ++refreshGeneration;
       subscribe.disabled = true;
       cancel.disabled = true;
       report.disabled = true;
       setStatus('Consultando estado de la suscripción…');
       try {
         const result = await callBilling('status');
+        if (generation !== refreshGeneration) return;
         const descriptions = {
           authorized: result.plan === 'pro' ? 'Pro activo: cuota aprobada y verificada en Mercado Pago.' : 'Suscripción autorizada. Aún no figura una cuota aprobada.',
           pending: 'Suscripción pendiente de completar o de pago aprobado.',
@@ -93,6 +98,7 @@ import {rememberCheckoutRedirect,consumeCheckoutRedirect,subscriptionReturnMessa
           setStatus(status.textContent + '\nTodavía no es posible contratar Pro. Puedes seguir usando CotizaFlow gratis.');
         }
       } catch (error) {
+        if (generation !== refreshGeneration) return;
         setStatus(error.message || 'No se pudo consultar el plan.');
       }
     }
