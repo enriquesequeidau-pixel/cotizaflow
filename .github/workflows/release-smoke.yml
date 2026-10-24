@@ -26,6 +26,8 @@ jobs:
         run: node --test test-billing-return.mjs
       - name: Recheck report authorization after cancellation or status outage
         run: node --test tests/pro-report-reverify.test.cjs
+      - name: Prevent stale subscription status from restoring Pro actions
+        run: node --test tests/pro-plan-status-race.test.cjs
       - name: Verify Pro API response allowlists and quota rejection
         run: node --test tests/edge-response-contract.test.cjs
       - name: Verify printable branding rejects script and CSS injection
