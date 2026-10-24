@@ -24,7 +24,7 @@
     const openButton = document.createElement('button');
     openButton.id = 'cf-plan-open';
     openButton.type = 'button';
-    openButton.textContent = '💳 Plan Pro';
+    openButton.textContent = '💳 Ver plan Pro';
     document.body.append(openButton);
     const dialog = document.createElement('dialog');
     dialog.id = 'cf-plan-dialog';
@@ -33,7 +33,7 @@
       <p><strong>$7.990 CLP/mes</strong> · Mercado Pago Chile</p>
       <p id="cf-plan-state" role="status" aria-live="polite"></p>
       <button type="button" id="cf-plan-refresh">Actualizar estado</button>
-      <button type="button" class="primary" id="cf-plan-checkout" disabled>Suscribirme</button>
+      <button type="button" class="primary" id="cf-plan-checkout" disabled>Continuar al pago</button>
       <button type="button" id="cf-plan-cancel" disabled>Cancelar suscripción</button>
       <button type="button" id="cf-plan-report" disabled>Descargar reporte Pro (CSV)</button>
       <button type="button" id="cf-plan-close">Cerrar</button>
@@ -89,7 +89,7 @@
         if (result.checkout_enabled === true && ['inactive','cancelled','expired'].includes(result.status)) {
           subscribe.disabled = false;
         } else if (result.checkout_enabled !== true) {
-          setStatus(status.textContent + '\nEl cobro Pro sigue desactivado hasta completar las pruebas.');
+          setStatus(status.textContent + '\nTodavía no es posible contratar Pro. Puedes seguir usando CotizaFlow gratis.');
         }
       } catch (error) {
         setStatus(error.message || 'No se pudo consultar el plan.');
