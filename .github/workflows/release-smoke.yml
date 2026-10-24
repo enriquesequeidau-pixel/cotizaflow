@@ -22,6 +22,8 @@ jobs:
         run: python3 tests/test_session_boundaries.py
       - name: Check hostile backup imports and allowlisted fields
         run: node --test tests/backup-security.test.mjs
+      - name: Confirm checkout return never grants unverified Pro
+        run: node --test test-billing-return.mjs
       - name: Verify Pro API response allowlists and quota rejection
         run: node --test tests/edge-response-contract.test.cjs
       - name: Verify printable branding rejects script and CSS injection
