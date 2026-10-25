@@ -32,10 +32,12 @@ class QuietHandler(SimpleHTTPRequestHandler):
 
 def run_case(browser,base,mode):
  context=browser.new_context(viewport={"width":390,"height":844})
- context.add_init_script("""(args)=>{
-   localStorage.setItem('cotizaflow-v1',JSON.stringify(args.data));
-   sessionStorage.setItem('cotizaflow-cloud-session-v1',JSON.stringify(args.session));
- }""",{"data":DATA,"session":SESSION})
+ context.add_init_script("""(()=>{
+   if(!localStorage.getItem('cotizaflow-v1'))
+     localStorage.setItem('cotizaflow-v1',JSON.stringify(%s));
+   if(!sessionStorage.getItem('cotizaflow-cloud-session-v1'))
+     sessionStorage.setItem('cotizaflow-cloud-session-v1',JSON.stringify(%s));
+ })();""" % (json.dumps(DATA),json.dumps(SESSION)))
  requests=[]
  def route_request(route):
   url=route.request.url
