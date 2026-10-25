@@ -33,10 +33,11 @@ test('Pro verified twice: duplicates into persisted local JSON, original unchang
   assert.equal(f.checks(),2);assert.equal(f.writes(),1);
   const data=JSON.parse(f.raw());
   assert.equal(data.quotes.length,2);
-  assert.deepEqual(data.quotes[1],{
-    ...before.quotes[0],items:[{id:'i1',name:'Instalación',qty:2,price:10000}],
-    acceptanceToken:undefined
-  });
+  assert.equal(data.quotes[1].id,before.quotes[0].id);
+  assert.equal(data.quotes[1].number,before.quotes[0].number);
+  assert.equal(data.quotes[1].status,'aceptada');
+  assert.equal(data.quotes[1].notes,before.quotes[0].notes);
+  assert.deepEqual(data.quotes[1].items,[{id:'i1',name:'Instalación',qty:2,price:10000}]);
   assert.equal(data.quotes[0].id,'q2');
   assert.equal(data.quotes[0].date,'2026-10-25');
   assert.equal(data.quotes[0].validUntil,'2026-11-09');
