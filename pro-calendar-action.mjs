@@ -29,7 +29,7 @@ export async function exportProFollowups({verifyPro,readData,namespace,downloadI
     throw new TypeError('Integración de calendario incompleta.');
   }
   if(await verifyPro()!==true) throw new Error('Acceso Pro no verificado.');
-  const data=readData();
+  const data=await readData();
   const ics=buildFollowupCalendar(data,{namespace:namespace(),generatedAt});
   await downloadIcs(ics,'cotizaflow-seguimientos.ics');
   return ics;
