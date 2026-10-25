@@ -76,3 +76,15 @@ test('errores de descarga se informan y no se presentan como éxito',async()=>{
 test('adaptador rechaza dependencias incompletas antes de consultar datos',async()=>{
   await assert.rejects(exportProFollowups({verifyPro:async()=>true}),/Integración/);
 });
+
+test('lectura asíncrona de datos aislados espera resolución antes de exportar',async()=>{
+  const f=fixture({readData:async()=>{f.calls.push('read-async');return sample();}});
+  const ics=await exportProFollowups(f.deps);
+  assert.deepEqual(f.calls,['verify','read-async','namespace','download']);
+  assert.match(ics,/BEGIN:VEVENT/);
+});
+test('rechazo de lectura asíncrona no crea UID ni descarga datos',async()=>{
+  const f=fixture({readData:async()=>{throw Error('lectura aislada fallida');}});
+  await assert.rejects(exportProFollowups(f.deps),/lectura aislada fallida/);
+  assert.equal(f.downloads.length,0);
+});
