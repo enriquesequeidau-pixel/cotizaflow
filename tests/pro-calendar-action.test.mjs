@@ -22,7 +22,7 @@ function fixture(overrides={}) {
 test('exporta ICS privado solo tras verificar Pro, en orden seguro',async()=>{
   const f=fixture();
   const ics=await exportProFollowups(f.deps);
-  assert.deepEqual(f.calls,['verify','read','namespace','download']);
+  assert.deepEqual(f.calls,['verify','read','verify','namespace','download']);
   assert.equal(f.downloads[0].name,'cotizaflow-seguimientos.ics');
   assert.equal(f.downloads[0].ics,ics);
   assert.match(ics,/DTSTART;VALUE=DATE:20260906/);
@@ -43,10 +43,10 @@ test('fallo de verificación remota se propaga sin descarga',async()=>{
 });
 test('revalida acceso en cada exportación, incluso tras una primera aprobación',async()=>{
   let checks=0;
-  const f=fixture({verifyPro:async()=>++checks===1});
+  const f=fixture({verifyPro:async()=>++checks<=2});
   await exportProFollowups(f.deps);
   await assert.rejects(exportProFollowups(f.deps),/Acceso Pro no verificado/);
-  assert.equal(checks,2);
+  assert.equal(checks,3);
   assert.equal(f.downloads.length,1);
 });
 test('datos corruptos bloquean descarga y no se reparan silenciosamente',async()=>{
@@ -80,11 +80,25 @@ test('adaptador rechaza dependencias incompletas antes de consultar datos',async
 test('lectura asíncrona de datos aislados espera resolución antes de exportar',async()=>{
   const f=fixture({readData:async()=>{f.calls.push('read-async');return sample();}});
   const ics=await exportProFollowups(f.deps);
-  assert.deepEqual(f.calls,['verify','read-async','namespace','download']);
+  assert.deepEqual(f.calls,['verify','read-async','verify','namespace','download']);
   assert.match(ics,/BEGIN:VEVENT/);
 });
 test('rechazo de lectura asíncrona no crea UID ni descarga datos',async()=>{
   const f=fixture({readData:async()=>{throw Error('lectura aislada fallida');}});
   await assert.rejects(exportProFollowups(f.deps),/lectura aislada fallida/);
+  assert.equal(f.downloads.length,0);
+});
+
+test('revocación Pro durante lectura asíncrona impide exportar',async()=>{
+  let checks=0,reads=0,namespaces=0;
+  const f=fixture({
+    verifyPro:async()=>++checks===1,
+    readData:async()=>{reads++;return sample();},
+    namespace:()=>{namespaces++;return 'opaque';}
+  });
+  await assert.rejects(exportProFollowups(f.deps),/Acceso Pro no verificado/);
+  assert.equal(checks,2);
+  assert.equal(reads,1);
+  assert.equal(namespaces,0);
   assert.equal(f.downloads.length,0);
 });
