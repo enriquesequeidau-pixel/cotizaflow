@@ -56,9 +56,17 @@ class ReleaseSmoke(unittest.TestCase):
         self.assertGreaterEqual(pro.count("await ensurePro()"), 3)
         self.assertIn("verifyPro:ensurePro", pro)
         adapter = (ROOT / "pro-calendar-action.mjs").read_text(encoding="utf-8")
-        self.assertIn("if(await verifyPro()!==true)", adapter)
-        self.assertLess(adapter.index("await verifyPro()"), adapter.index("const data=readData()"))
-        self.assertLess(adapter.index("const data=readData()"), adapter.index("await downloadIcs("))
+        # Await the isolated read and recheck authorization before creating ICS.
+        # This prevents a revoked Pro subscription from exporting private data.
+        checks = [m.start() for m in re.finditer(
+            r"if\s*\(\s*await\s+verifyPro\(\)\s*!==\s*true\s*\)", adapter)]
+        read = re.search(r"const\s+data\s*=\s*await\s+readData\(\)\s*;", adapter)
+        self.assertIsNotNone(read, "Calendar must await isolated data")
+        self.assertGreaterEqual(len(checks), 2, "Pro must be checked before and after reading")
+        download = adapter.index("await downloadIcs(")
+        self.assertLess(checks[0], read.start())
+        self.assertLess(read.end(), checks[1])
+        self.assertLess(checks[1], download)
 
     def test_no_obvious_server_secrets_in_static_files(self):
         for name in ("index.html", "app.mjs", "cloud.mjs", "pro.mjs"):
