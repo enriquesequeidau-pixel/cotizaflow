@@ -89,6 +89,62 @@ def run_case(browser,base,mode,width=390,height=844):
  finally:
   context.close()
 
+def run_commercial_report_case(browser,base,mode):
+ """End-to-end gated local report preview and CSV; never touches real billing."""
+ context=browser.new_context(viewport={"width":390,"height":844},accept_downloads=True)
+ context.add_init_script("""(()=>{
+   if(!localStorage.getItem('cotizaflow-v1'))
+     localStorage.setItem('cotizaflow-v1',JSON.stringify(%s));
+   if(!sessionStorage.getItem('cotizaflow-cloud-session-v1'))
+     sessionStorage.setItem('cotizaflow-cloud-session-v1',JSON.stringify(%s));
+ })();""" % (json.dumps(DATA),json.dumps(SESSION)))
+ checks=[]
+ def route_request(route):
+  url=route.request.url
+  if url.startswith(base):
+   route.continue_()
+  elif url.endswith("/functions/v1/cotizaflow-pro-access"):
+   checks.append(url)
+   allowed=mode=="pro" or len(checks)==1
+   route.fulfill(status=200,content_type="application/json",
+     body=json.dumps({"plan":"pro" if allowed else "free","payment_verified":allowed}))
+  else:
+   route.abort()
+ context.route("**/*",route_request)
+ page=context.new_page()
+ errors=[]
+ page.on("pageerror",lambda exc:errors.append(str(exc)))
+ try:
+  page.goto(base+"/",wait_until="load")
+  page.locator("#cf-pro-open").click()
+  page.locator("#cf-pro-report-preview").wait_for()
+  page.locator("#cf-pro-report-from").fill("2026-10-18")
+  page.locator("#cf-pro-report-to").fill("2026-10-18")
+  page.locator("#cf-pro-report-client").select_option("c1")
+  if mode=="pro":
+   page.locator("#cf-pro-report-preview").click()
+   page.wait_for_function("()=>document.getElementById('cf-pro-report-result').textContent.includes('Total cotizado:')")
+   result=page.locator("#cf-pro-report-result").inner_text()
+   assert "no representa ingresos" in result.lower(),result
+   assert "Cotizaciones: 1" in result,result
+   with page.expect_download(timeout=10000) as pending:
+    page.locator("#cf-pro-report-csv").click()
+   download=pending.value
+   assert download.suggested_filename=="cotizaflow-informe-comercial.csv"
+   csv=download.path().read_bytes().decode("utf-8-sig")
+   assert "COT-0001" in csv,csv
+   assert "Servicio ficticio" not in csv,csv
+   assert len(checks)==6,checks
+  else:
+   page.locator("#cf-pro-report-csv").click()
+   page.locator("#cf-pro-status").get_by_text("requiere Pro",exact=False).wait_for()
+   assert len(checks)==2,checks
+  assert page.evaluate("JSON.parse(localStorage.getItem('cotizaflow-v1'))")==DATA
+  assert not errors,errors
+  print("PASS commercial report",mode,"390x844, local mock billing, no network",flush=True)
+ finally:
+  context.close()
+
 def main():
  handler=functools.partial(QuietHandler,directory=str(ROOT))
  server=ThreadingHTTPServer(("127.0.0.1",0),handler)
@@ -102,6 +158,8 @@ def main():
     for mode in ("free","pro","revoked"):
      run_case(browser,base,mode)
     run_case(browser,base,"pro",width=1440,height=900)
+    for mode in ("pro","revoked"):
+     run_commercial_report_case(browser,base,mode)
    finally:
     browser.close()
  finally:
