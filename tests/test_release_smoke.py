@@ -51,7 +51,14 @@ class ReleaseSmoke(unittest.TestCase):
         self.assertIn("('cf-pro-content').hidden=true", guard)
         self.assertNotIn("expires", pro)
         self.assertNotIn("verifiedToken", pro)
-        self.assertGreaterEqual(pro.count("await ensurePro()"), 4)
+        # Three actions still call the guard directly. Calendar export delegates to
+        # an adapter that MUST verify the same guard before reading or downloading.
+        self.assertGreaterEqual(pro.count("await ensurePro()"), 3)
+        self.assertIn("verifyPro:ensurePro", pro)
+        adapter = (ROOT / "pro-calendar-action.mjs").read_text(encoding="utf-8")
+        self.assertIn("if(await verifyPro()!==true)", adapter)
+        self.assertLess(adapter.index("await verifyPro()"), adapter.index("const data=readData()"))
+        self.assertLess(adapter.index("const data=readData()"), adapter.index("await downloadIcs("))
 
     def test_no_obvious_server_secrets_in_static_files(self):
         for name in ("index.html", "app.mjs", "cloud.mjs", "pro.mjs"):
