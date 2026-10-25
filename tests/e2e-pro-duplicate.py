@@ -30,8 +30,8 @@ SESSION={
 class QuietHandler(SimpleHTTPRequestHandler):
  def log_message(self,*args): pass
 
-def run_case(browser,base,mode):
- context=browser.new_context(viewport={"width":390,"height":844})
+def run_case(browser,base,mode,width=390,height=844):
+ context=browser.new_context(viewport={"width":width,"height":height})
  context.add_init_script("""(()=>{
    if(!localStorage.getItem('cotizaflow-v1'))
      localStorage.setItem('cotizaflow-v1',JSON.stringify(%s));
@@ -85,7 +85,7 @@ def run_case(browser,base,mode):
    assert result==DATA, "Free/revoked access must not mutate local data"
   assert len(requests)=={"free":1,"pro":3,"revoked":2}[mode],requests
   assert not errors,errors
-  print("PASS browser",mode,"390x844; mocked entitlement; no external network",flush=True)
+  print("PASS browser",mode,f"{width}x{height}; mocked entitlement; no external network",flush=True)
  finally:
   context.close()
 
@@ -101,6 +101,7 @@ def main():
    try:
     for mode in ("free","pro","revoked"):
      run_case(browser,base,mode)
+    run_case(browser,base,"pro",width=1440,height=900)
    finally:
     browser.close()
  finally:
