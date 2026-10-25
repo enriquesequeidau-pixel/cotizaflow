@@ -1,0 +1,23 @@
+name: CotizaFlow v2 - duplicacion segura de cotizaciones
+on:
+  pull_request:
+    paths:
+      - 'quote-duplicate.mjs'
+      - 'tests/quote-duplicate.test.mjs'
+      - '.github/workflows/quote-duplicate-qa.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  quote-duplicate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verificar sintaxis
+        run: node --check quote-duplicate.mjs && node --check tests/quote-duplicate.test.mjs
+      - name: Pruebas del duplicador
+        run: node --test tests/quote-duplicate.test.mjs
