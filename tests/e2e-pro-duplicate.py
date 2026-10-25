@@ -60,7 +60,7 @@ def run_case(browser,base,mode):
   page.goto(base+"/",wait_until="load")
   page.locator("#cf-pro-open").click()
   if mode=="free":
-   page.wait_for_function("document.querySelector(\'#cf-pro-status\')?.textContent.includes(\'requiere Pro\')")
+   page.locator("#cf-pro-status").get_by_text("requiere Pro",exact=False).wait_for()
    assert page.locator("#cf-pro-duplicate").count()==0
   else:
    page.locator("#cf-pro-duplicate").wait_for()
@@ -79,7 +79,7 @@ def run_case(browser,base,mode):
     assert result["quotes"][0]["items"][0]["id"]!="i1"
     assert result["quotes"][0]["date"]!=result["quotes"][1]["date"]
    else:
-    page.wait_for_function("document.querySelector(\'#cf-pro-status\')?.textContent.includes(\'requiere Pro\')")
+    page.locator("#cf-pro-status").get_by_text("requiere Pro",exact=False).wait_for()
   if mode!="pro":
    result=page.evaluate("JSON.parse(localStorage.getItem('cotizaflow-v1'))")
    assert result==DATA, "Free/revoked access must not mutate local data"
