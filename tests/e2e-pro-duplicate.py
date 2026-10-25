@@ -131,7 +131,7 @@ def run_commercial_report_case(browser,base,mode):
     page.locator("#cf-pro-report-csv").click()
    download=pending.value
    assert download.suggested_filename=="cotizaflow-informe-comercial.csv"
-   csv=download.path().read_bytes().decode("utf-8-sig")
+   csv=Path(download.path()).read_bytes().decode("utf-8-sig")
    assert "COT-0001" in csv,csv
    assert "Servicio ficticio" not in csv,csv
    assert len(checks)==6,checks
