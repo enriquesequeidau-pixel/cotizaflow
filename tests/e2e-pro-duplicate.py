@@ -145,6 +145,54 @@ def run_commercial_report_case(browser,base,mode):
  finally:
   context.close()
 
+
+def run_commercial_report_account_switch_case(browser,base):
+ """Two mock Pro accounts: never download account A CSV after switching to B."""
+ context=browser.new_context(viewport={"width":390,"height":844},accept_downloads=True)
+ context.add_init_script("""(()=>{
+   if(!localStorage.getItem('cotizaflow-v1'))
+     localStorage.setItem('cotizaflow-v1',JSON.stringify(%s));
+   if(!sessionStorage.getItem('cotizaflow-cloud-session-v1'))
+     sessionStorage.setItem('cotizaflow-cloud-session-v1',JSON.stringify(%s));
+ })();""" % (json.dumps(DATA),json.dumps(SESSION)))
+ page=context.new_page()
+ checks=[];downloads=[];errors=[]
+ page.on("download",lambda download:downloads.append(download))
+ page.on("pageerror",lambda exc:errors.append(str(exc)))
+ def route_request(route):
+  url=route.request.url
+  if url.startswith(base):
+   route.continue_()
+  elif url.endswith("/functions/v1/cotizaflow-pro-access"):
+   checks.append(url)
+   if len(checks)==3:
+    # In-flight CSV generation began as A, but the final Pro check sees B.
+    # Both accounts have mocked Pro, so a boolean-only entitlement is insufficient.
+    page.evaluate("""()=>{
+      const key='cotizaflow-cloud-session-v1';
+      const value=JSON.parse(sessionStorage.getItem(key));
+      value.user.id='22222222-2222-4222-8222-222222222222';
+      sessionStorage.setItem(key,JSON.stringify(value));
+    }""")
+   route.fulfill(status=200,content_type="application/json",
+     body=json.dumps({"plan":"pro","payment_verified":True}))
+  else:
+   route.abort()
+ context.route("**/*",route_request)
+ try:
+  page.goto(base+"/",wait_until="load")
+  page.locator("#cf-pro-open").click()
+  page.locator("#cf-pro-report-csv").wait_for()
+  page.locator("#cf-pro-report-csv").click()
+  page.locator("#cf-pro-status").get_by_text("La cuenta cambió",exact=False).wait_for(timeout=10000)
+  assert len(checks)==3,checks
+  assert not downloads,"An A report must not be downloaded after switching to B"
+  assert page.evaluate("JSON.parse(localStorage.getItem('cotizaflow-v1'))")==DATA
+  assert not errors,errors
+  print("PASS commercial report cross-account revocation; no CSV; no external network",flush=True)
+ finally:
+  context.close()
+
 def main():
  handler=functools.partial(QuietHandler,directory=str(ROOT))
  server=ThreadingHTTPServer(("127.0.0.1",0),handler)
@@ -160,6 +208,7 @@ def main():
     run_case(browser,base,"pro",width=1440,height=900)
     for mode in ("pro","revoked"):
      run_commercial_report_case(browser,base,mode)
+    run_commercial_report_account_switch_case(browser,base)
    finally:
     browser.close()
  finally:
