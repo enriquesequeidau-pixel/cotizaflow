@@ -66,7 +66,7 @@ def run_case(browser, base, mode):
         else:
             page.locator("#cf-pro-calendar").click()
             page.locator("#cf-pro-status").get_by_text(
-                "Acceso Pro no verificado", exact=False
+                "requiere Pro", exact=False
             ).wait_for(timeout=10000)
             assert not downloads, "Revoked account must not download an ICS"
             assert len(checks) == (4 if mode == "revoke_final" else 2), checks
