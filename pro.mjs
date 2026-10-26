@@ -1,11 +1,22 @@
 /* CotizaFlow Pro v5 — non-destructive module, no premium entitlement in localStorage */
 import {safeBrandColor,safeBrandLogo} from './pro-safety.mjs';
+import {exportProFollowups,localCalendarNamespace} from './pro-calendar-action.mjs';
+import {duplicateProQuote} from './pro-duplicate-action.mjs';
+import {prepareProCommercialReport,exportProCommercialReport} from './pro-commercial-report-action.mjs';
 const API='https://nrwbnjjaqilgreqhpcov.supabase.co';
 const KEY='sb_publishable_7aOw4W695bp3CIMYTO9E6Q_5VChQ6so';
 const DATA='cotizaflow-v1',SESSION='cotizaflow-cloud-session-v1';
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=(x,c='CLP')=>new Intl.NumberFormat('es-CL',{style:'currency',currency:c,maximumFractionDigits:c==='CLP'?0:2}).format(x||0);
 const sum=q=>{const gross=(q.items||[]).reduce((s,i)=>s+Number(i.qty||0)*Number(i.price||0),0);return gross*(1-Number(q.discount||0)/100)*(1+Number(q.tax||0)/100)};
+// Continuity only: the backend's ensurePro remains the authorization source.
+// Fail closed if logout/account switching changes the active browser session.
+function reportAccountIdentity(){
+  try{
+    const id=JSON.parse(sessionStorage.getItem(SESSION)||'null')?.user?.id;
+    return typeof id==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)?id:null;
+  }catch{return null;}
+}
 const getData=()=>{let d=JSON.parse(localStorage.getItem(DATA)||'null');return d&&Array.isArray(d.quotes)&&Array.isArray(d.clients)?d:null};
 const css=document.createElement('style');css.textContent=`#cf-pro-open{position:fixed;left:16px;bottom:70px;z-index:999;background:#123a52;color:white;border:0;border-radius:30px;padding:11px 15px;font-weight:800;box-shadow:0 5px 24px #1235}#cf-pro-dialog{border:0;border-radius:16px;width:min(94vw,780px);max-height:91vh;padding:23px;color:#193a47;font:14px system-ui;box-shadow:0 10px 55px #1238}#cf-pro-dialog::backdrop{background:#092936ad}#cf-pro-dialog h2{font-size:23px}#cf-pro-dialog button{padding:10px 13px;border-radius:9px;border:1px solid #b5cacf;background:white;color:#174650;cursor:pointer;margin:5px 4px 5px 0}#cf-pro-dialog .primary{background:#0b766a;color:white}#cf-pro-dialog input,#cf-pro-dialog textarea,#cf-pro-dialog select{width:100%;padding:9px;margin-top:5px;margin-bottom:9px}#cf-pro-dialog .metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:9px}#cf-pro-dialog .metric{background:#eff8f6;padding:14px;border-radius:9px;font-size:17px}#cf-pro-dialog .metric small{display:block;font-size:12px}#cf-pro-dialog section{border-top:1px solid #d9e7ea;padding-top:13px;margin-top:15px}#cf-pro-dialog table{min-width:0;font-size:13px;width:100%}#cf-pro-dialog th,#cf-pro-dialog td{padding:8px;text-align:left}#cf-pro-status{white-space:pre-wrap}`;document.head.append(css);
 const btn=document.createElement('button');btn.id='cf-pro-open';btn.textContent='✨ Estudio Pro';btn.type='button';document.body.append(btn);
@@ -21,11 +32,66 @@ async function entitlement(){const token=await sessionToken();const r=await fetc
 async function ensurePro(){verified=false;try{await entitlement();if(!verified)throw Error('Esta función requiere Pro con pago aprobado en Mercado Pago.');return true}catch(error){$('cf-pro-content').hidden=true;throw error}}
 function safeName(n){return String(n||'cotizacion').replace(/[^\w-]/g,'_').slice(0,64)}
 function openPrintable(q,d){const client=d.clients.find(x=>x.id===q.clientId)||{};let currency=q.currency||d.settings.currency;const b=brand;const logo=safeBrandLogo(b.logo);const color=safeBrandColor(b.color);const html=`<!doctype html><html lang="es"><meta charset="utf-8"><title>Presupuesto ${esc(q.number)}</title><style>body{font:15px system-ui;max-width:780px;margin:38px auto;padding:24px;color:#172a36}h1{color:${color}}header{border-bottom:5px solid ${color};display:flex;gap:30px;align-items:center;padding-bottom:15px}img{max-width:130px;max-height:90px}table{width:100%;border-collapse:collapse;margin:24px 0}th,td{text-align:left;padding:12px;border-bottom:1px solid #ddd}strong.total{font-size:23px;color:${color}}@media print{button{display:none}} </style><header>${logo?`<img src="${esc(logo)}" alt="Logo">`:''}<div><h1>${esc(d.settings.business)}</h1><p>${esc(d.settings.phone)} · ${esc(d.settings.email)}</p></div></header><h2>Presupuesto ${esc(q.number)}</h2><p>Cliente: ${esc(client.name)} · Fecha: ${esc(q.date)} · Vigente hasta: ${esc(q.validUntil)}</p><table><thead><tr><th>Descripción</th><th>Cantidad</th><th>Precio</th></tr></thead><tbody>${q.items.map(i=>`<tr><td>${esc(i.name)}</td><td>${esc(i.qty)}</td><td>${fmt(i.price,currency)}</td></tr>`).join('')}</tbody></table><p>Descuento ${esc(q.discount)}% · Impuesto ${esc(q.tax)}%</p><strong class="total">Total: ${fmt(sum(q),currency)}</strong><p>${esc(q.notes)}</p><p>${esc(b.footer||'Gracias por preferirnos.')}</p><button onclick="print()">Imprimir / Guardar PDF</button></html>`;const w=window.open('','_blank');if(!w){notice('El navegador bloqueó la nueva ventana. Permite ventanas emergentes para este sitio.');return}w.document.write(html);w.document.close()}
-async function build(){const d=getData();if(!d){notice('No hay datos locales. Crea una cotización primero.');return}await ensurePro();const quotes=d.quotes;const accepted=quotes.filter(q=>q.status==='aceptada');const pending=quotes.filter(q=>q.status==='enviada');const today=new Date().toISOString().slice(0,10);const due=pending.filter(q=>q.followUp&&q.followUp<=today);const cur=d.settings.currency;brand=JSON.parse(sessionStorage.getItem('cotizaflow-pro-brand-preview')||'{}');const customers=new Map(d.clients.map(c=>[c.id,c.name]));$('cf-pro-content').innerHTML=`<div class="metrics"><div class="metric"><small>Total cotizado</small>${fmt(quotes.reduce((s,q)=>s+sum(q),0),cur)}</div><div class="metric"><small>Aceptado (no cobrado)</small>${fmt(accepted.reduce((s,q)=>s+sum(q),0),cur)}</div><div class="metric"><small>Seguimientos vencidos</small>${due.length}</div><div class="metric"><small>Tasa aceptación</small>${quotes.length?Math.round(accepted.length/quotes.length*100):0}%</div></div><section><h3>📞 Seguimientos</h3>${pending.length?`<table><thead><tr><th>Cliente</th><th>Presupuesto</th><th>Recordatorio</th></tr></thead><tbody>${pending.slice(0,30).map(q=>`<tr><td>${esc(customers.get(q.clientId)||'—')}</td><td>${esc(q.number)}</td><td>${esc(q.followUp||'Sin fecha')}</td></tr>`).join('')}</tbody></table>`:'Sin cotizaciones pendientes.'}<button id="cf-pro-calendar">Exportar recordatorios (.ics)</button></section><section><h3>🎨 Documento con identidad de tu negocio</h3><label>Color del documento <input id="cf-pro-color" type="color" value="${/^#[0-9a-f]{6}$/i.test(brand.color||'')?brand.color:'#123a52'}"></label><label>Pie comercial <input id="cf-pro-footer" maxlength="160" value="${esc(brand.footer||'Gracias por preferirnos.')}"></label><label>Logo (PNG/JPEG, máximo 120 KB) <input id="cf-pro-logo" type="file" accept="image/png,image/jpeg"></label><label>Elegir cotización <select id="cf-pro-quote">${quotes.map(q=>`<option value="${esc(q.id)}">${esc(q.number)} · ${esc(customers.get(q.clientId)||'')}</option>`).join('')}</select></label><button id="cf-pro-print" class="primary" ${quotes.length?'':'disabled'}>Imprimir propuesta personalizada</button><small>Los ajustes visuales son temporales en este navegador y no alteran el respaldo.</small></section><section><h3>📋 Plantillas rápidas</h3><p>Usa una cotización existente como plantilla: descarga sus servicios y cantidades para reutilizarlos sin tocar el original.</p><button id="cf-pro-template" ${quotes.length?'':'disabled'}>Descargar plantilla CSV</button></section><section><h3>☁️ Trabajo en varios dispositivos</h3><p>Por ahora usa ☁ Respaldo nube para subir y restaurar con control de conflictos. La sincronización automática todavía no está habilitada: no trabajes simultáneamente desde dos equipos.</p></section>`;
+async function build(){const d=getData();if(!d){notice('No hay datos locales. Crea una cotización primero.');return}await ensurePro();const quotes=d.quotes;const accepted=quotes.filter(q=>q.status==='aceptada');const pending=quotes.filter(q=>q.status==='enviada');const today=new Date().toISOString().slice(0,10);const due=pending.filter(q=>q.followUp&&q.followUp<=today);const cur=d.settings.currency;brand=JSON.parse(sessionStorage.getItem('cotizaflow-pro-brand-preview')||'{}');const customers=new Map(d.clients.map(c=>[c.id,c.name]));$('cf-pro-content').innerHTML=`<div class="metrics"><div class="metric"><small>Total cotizado</small>${fmt(quotes.reduce((s,q)=>s+sum(q),0),cur)}</div><div class="metric"><small>Aceptado (no cobrado)</small>${fmt(accepted.reduce((s,q)=>s+sum(q),0),cur)}</div><div class="metric"><small>Seguimientos vencidos</small>${due.length}</div><div class="metric"><small>Tasa aceptación</small>${quotes.length?Math.round(accepted.length/quotes.length*100):0}%</div></div><section><h3>📞 Seguimientos</h3>${pending.length?`<table><thead><tr><th>Cliente</th><th>Presupuesto</th><th>Recordatorio</th></tr></thead><tbody>${pending.slice(0,30).map(q=>`<tr><td>${esc(customers.get(q.clientId)||'—')}</td><td>${esc(q.number)}</td><td>${esc(q.followUp||'Sin fecha')}</td></tr>`).join('')}</tbody></table>`:'Sin cotizaciones pendientes.'}<button id="cf-pro-calendar">Exportar recordatorios (.ics)</button></section><section><h3>📈 Informe comercial Pro</h3><p>Filtra tus cotizaciones por fecha o cliente. Son presupuestos, no pagos ni ingresos facturados.</p><div><label>Desde <input id="cf-pro-report-from" type="date"></label><label>Hasta <input id="cf-pro-report-to" type="date"></label><label>Cliente <select id="cf-pro-report-client"><option value="">Todos los clientes</option>${d.clients.map(c=>`<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('')}</select></label></div><button id="cf-pro-report-preview" type="button">Ver informe Pro</button><button id="cf-pro-report-csv" type="button">Descargar CSV seguro</button><p id="cf-pro-report-result" role="status" aria-live="polite"></p></section><section><h3>🎨 Documento con identidad de tu negocio</h3><label>Color del documento <input id="cf-pro-color" type="color" value="${/^#[0-9a-f]{6}$/i.test(brand.color||'')?brand.color:'#123a52'}"></label><label>Pie comercial <input id="cf-pro-footer" maxlength="160" value="${esc(brand.footer||'Gracias por preferirnos.')}"></label><label>Logo (PNG/JPEG, máximo 120 KB) <input id="cf-pro-logo" type="file" accept="image/png,image/jpeg"></label><label>Elegir cotización <select id="cf-pro-quote">${quotes.map(q=>`<option value="${esc(q.id)}">${esc(q.number)} · ${esc(customers.get(q.clientId)||'')}</option>`).join('')}</select></label><button id="cf-pro-print" class="primary" ${quotes.length?'':'disabled'}>Imprimir propuesta personalizada</button><small>Los ajustes visuales son temporales en este navegador y no alteran el respaldo.</small></section><section><h3>📋 Plantillas rápidas</h3><p>Usa una cotización existente como plantilla: descarga sus servicios y cantidades para reutilizarlos sin tocar el original.</p><button id="cf-pro-template" ${quotes.length?'':'disabled'}>Descargar plantilla CSV</button><p>Duplica la cotización elegida como nuevo borrador, con otro número y fechas actualizadas. La copia se guarda solo en este navegador.</p><button id="cf-pro-duplicate" ${quotes.length?'':'disabled'}>Duplicar como borrador (Pro)</button></section><section><h3>☁️ Trabajo en varios dispositivos</h3><p>Por ahora usa ☁ Respaldo nube para subir y restaurar con control de conflictos. La sincronización automática todavía no está habilitada: no trabajes simultáneamente desde dos equipos.</p></section>`;
 $('cf-pro-content').hidden=false;notice('Plan Pro verificado con Mercado Pago.');
-$('cf-pro-calendar').onclick=async()=>{try{await ensurePro();const future=due.concat(pending.filter(q=>q.followUp&&q.followUp>today));const lines=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//CotizaFlow//Seguimientos//ES'];for(const q of future){if(!/^\d{4}-\d{2}-\d{2}$/.test(q.followUp||''))continue;const day=q.followUp.replace(/-/g,'');const desc=String(q.number+' '+(customers.get(q.clientId)||'')).replace(/[\r\n,;]/g,' ');lines.push('BEGIN:VEVENT','UID:'+encodeURIComponent(q.id)+'@cotizaflow','DTSTART;VALUE=DATE:'+day,'SUMMARY:Seguimiento '+desc,'END:VEVENT')}lines.push('END:VCALENDAR');download(new Blob([lines.join('\r\n')],{type:'text/calendar'}),'cotizaflow-seguimientos.ics')}catch(e){notice(e.message)}};
+$('cf-pro-calendar').onclick=async()=>{try{
+  await exportProFollowups({
+    verifyPro:ensurePro,
+    readData:getData,
+    namespace:()=>localCalendarNamespace(localStorage,()=>crypto.randomUUID()),
+    downloadIcs:(ics,name)=>download(new Blob([ics],{type:'text/calendar;charset=utf-8'}),name)
+  });
+}catch(e){notice(e.message)}};
+
+const reportFilters=()=>({
+  from:$('cf-pro-report-from').value,to:$('cf-pro-report-to').value,
+  clientId:$('cf-pro-report-client').value
+});
+$('cf-pro-report-preview').onclick=async()=>{
+  const button=$('cf-pro-report-preview');button.disabled=true;
+  const output=$('cf-pro-report-result');
+  output.textContent='Verificando suscripción y calculando el informe…';
+  try{
+    const report=await prepareProCommercialReport({
+      verifyPro:ensurePro,readData:getData,accountIdentity:reportAccountIdentity,filters:reportFilters()
+    });
+    output.textContent='Cotizaciones: '+report.counts.total+
+      ' · Total cotizado: '+fmt(report.totalQuoted,report.currency)+
+      ' · Valor aceptado (no cobrado): '+fmt(report.acceptedValue,report.currency)+
+      ' · Tasa de aceptación: '+report.acceptanceRate+'%'+
+      ' · Seguimientos vencidos: '+report.counts.seguimientosVencidos+
+      '. No representa ingresos ni pagos recibidos.';
+  }catch(e){output.textContent='';notice(e.message);}
+  finally{button.disabled=false;}
+};
+$('cf-pro-report-csv').onclick=async()=>{
+  const button=$('cf-pro-report-csv');button.disabled=true;
+  try{
+    const result=await exportProCommercialReport({
+      verifyPro:ensurePro,readData:getData,accountIdentity:reportAccountIdentity,filters:reportFilters(),
+      downloadCsv:(csv,name)=>download(new Blob([csv],{type:'text/csv;charset=utf-8'}),name)
+    });
+    notice('Informe CSV descargado: '+result.rows+' cotizaciones. No son ingresos cobrados.');
+  }catch(e){notice(e.message);}
+  finally{button.disabled=false;}
+};
+
 $('cf-pro-print').onclick=async()=>{try{await ensurePro();brand.color=$('cf-pro-color').value;brand.footer=$('cf-pro-footer').value;sessionStorage.setItem('cotizaflow-pro-brand-preview',JSON.stringify(brand));const q=quotes.find(x=>x.id===$('cf-pro-quote').value);if(q)openPrintable(q,d)}catch(e){notice(e.message)}};
 $('cf-pro-logo').onchange=async e=>{let file=e.target.files?.[0];if(!file)return;if(file.size>120000||!['image/png','image/jpeg'].includes(file.type)){notice('Logo no válido: usa PNG o JPEG de hasta 120 KB.');return}const reader=new FileReader();reader.onload=()=>{brand.logo=String(reader.result);notice('Logo cargado. Pulsa Imprimir propuesta personalizada.')};reader.readAsDataURL(file)};
+$('cf-pro-duplicate').onclick=async()=>{
+  const button=$('cf-pro-duplicate');
+  const selected=$('cf-pro-quote').value;
+  if(!quotes.some(q=>q.id===selected))return;
+  if(!confirm('¿Duplicar esta cotización como borrador local? La página se recargará para mostrar la copia.'))return;
+  button.disabled=true;
+  try{
+    const result=await duplicateProQuote({
+      verifyPro:ensurePro,storage:localStorage,sourceId:selected
+    });
+    notice('Copia '+result.number+' guardada. Recargando el editor…');
+    location.reload(); // Free editor keeps in-memory state; never leave it stale.
+  }catch(e){notice(e.message);button.disabled=false;}
+};
 $('cf-pro-template').onclick=async()=>{try{await ensurePro();const q=quotes.find(x=>x.id===$('cf-pro-quote').value);if(!q)return;const safe=v=>'"'+String(v??'').replace(/^[=+@-]/,"'").replace(/"/g,'""')+'"';const rows=[['descripcion','cantidad','precio'].map(safe).join(','),...q.items.map(i=>[i.name,i.qty,i.price].map(safe).join(','))];download(new Blob(['\uFEFF'+rows.join('\r\n')],{type:'text/csv;charset=utf-8'}),'plantilla-'+safeName(q.number)+'.csv')}catch(e){notice(e.message)}};
 }
 function download(blob,name){const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000)}

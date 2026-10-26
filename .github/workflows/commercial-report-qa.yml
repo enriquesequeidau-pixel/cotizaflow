@@ -1,0 +1,26 @@
+name: CotizaFlow v2 - indicadores comerciales seguros
+on:
+  pull_request:
+    paths:
+      - 'commercial-report.mjs'
+      - 'pro-commercial-report-action.mjs'
+      - 'pro.mjs'
+      - 'tests/commercial-report.test.mjs'
+      - 'tests/pro-commercial-report-action.test.mjs'
+      - '.github/workflows/commercial-report-qa.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  commercial-report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verificar sintaxis
+        run: node --check commercial-report.mjs && node --check pro-commercial-report-action.mjs && node --check pro.mjs && node --check tests/commercial-report.test.mjs && node --check tests/pro-commercial-report-action.test.mjs
+      - name: Pruebas de reportes Pro v2
+        run: node --test tests/commercial-report.test.mjs tests/pro-commercial-report-action.test.mjs

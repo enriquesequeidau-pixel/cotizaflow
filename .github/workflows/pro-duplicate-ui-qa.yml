@@ -1,0 +1,45 @@
+name: CotizaFlow v2 - Pro duplicate UI and offline browser E2E
+on:
+  pull_request:
+    paths:
+      - 'pro.mjs'
+      - 'pro-duplicate-action.mjs'
+      - 'quote-duplicate.mjs'
+      - 'backup.mjs'
+      - 'app.mjs'
+      - 'index.html'
+      - 'tests/pro-duplicate-action.test.mjs'
+      - 'tests/e2e-pro-duplicate.py'
+      - 'tests/e2e-pro-free-editor-conflict.py'
+      - '.github/workflows/pro-duplicate-ui-qa.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  pro-duplicate-ui:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check browser integration syntax
+        run: |
+          node --check pro.mjs
+          node --check pro-duplicate-action.mjs
+          node --check tests/pro-duplicate-action.test.mjs
+          python -m py_compile tests/e2e-pro-duplicate.py tests/e2e-pro-free-editor-conflict.py
+      - name: Exercise persistence, cancellation and Free behavior
+        run: node --test tests/quote-duplicate.test.mjs tests/pro-duplicate-action.test.mjs
+      - name: Install isolated Chromium
+        run: |
+          python -m pip install playwright==1.56.0
+          python -m playwright install --with-deps chromium
+      - name: Browser E2E (localhost and fake entitlements only)
+        run: |
+          python tests/e2e-pro-duplicate.py
+          python tests/e2e-pro-free-editor-conflict.py
