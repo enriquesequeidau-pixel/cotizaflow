@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="es-CL">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#102c3d">
+<meta name="description" content="Crea cotizaciones profesionales, organiza clientes y comparte presupuestos con CotizaFlow. Diseñado para emprendedores y negocios de Chile. Empieza gratis.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="CotizaFlow Chile · Cotiza claro, trabaja mejor">
+<meta property="og:description" content="Organiza clientes, crea presupuestos en PDF y prepara mensajes para WhatsApp. Pruébalo gratis.">
+<title>CotizaFlow Chile · Cotiza claro, trabaja mejor</title>
+<style>
+:root{--ink:#102c3d;--muted:#58717b;--teal:#00baab;--teal-dark:#008c82;--line:#d9e9e9;--milk:#f4fbf9;--white:#fff;--shadow:0 26px 85px rgba(14,67,73,.10);font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink);background:var(--white)}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0}a{color:inherit}button,a{ -webkit-tap-highlight-color:transparent}a:focus-visible,summary:focus-visible{outline:3px solid var(--teal-dark);outline-offset:4px;border-radius:5px}
+.skip{position:absolute;top:-90px;left:12px;padding:12px;background:#fff;z-index:100}.skip:focus{top:12px}
+.wrap{max-width:1180px;margin:0 auto;padding:0 24px}nav{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:19px 0}header{border-bottom:1px solid #e9efef;background:#fff}
+.brand{display:flex;align-items:center;gap:10px;font-weight:900;letter-spacing:-.75px;font-size:23px;text-decoration:none}.brand em{font-style:normal;color:var(--teal-dark)}
+.mark{height:42px;width:42px;border-radius:13px;display:grid;place-items:center;background:#e6faf7;flex:0 0 42px}
+.navlinks{display:flex;align-items:center;gap:28px}.navlinks a{text-decoration:none;font-size:14px;font-weight:650;color:#405e67}.navlinks a:hover{color:var(--teal-dark)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:52px;border-radius:14px;padding:14px 22px;font-size:15px;font-weight:800;text-decoration:none;border:2px solid transparent;transition:transform .15s,background .15s}.btn:hover{transform:translateY(-2px)}
+.btn-primary{color:#073538;background:var(--teal);box-shadow:0 12px 24px rgba(0,186,171,.20)}.btn-primary:hover{background:#09d4be}
+.btn-light{background:#fff;border-color:var(--line);color:var(--ink)}
+.hero{background:radial-gradient(ellipse at 87% 2%,#b8fbeb70,transparent 49%),linear-gradient(160deg,#f4fcfa 0%,#fff 68%);overflow:hidden}.hero-grid{padding:85px 0 82px;display:grid;grid-template-columns:minmax(0,1.03fr) minmax(0,.97fr);gap:50px;align-items:center}
+.eyebrow{display:inline-flex;align-items:center;gap:9px;padding:9px 13px;background:#dcf9ef;color:#05776c;border-radius:99px;font-size:12px;letter-spacing:.02em;font-weight:850}.dot{height:8px;width:8px;border-radius:50%;background:var(--teal-dark)}
+h1{font-size:clamp(43px,5.2vw,74px);line-height:1.065;letter-spacing:-.06em;margin:24px 0 22px;max-width:660px}h1 span{color:var(--teal-dark)}
+.lead{font-size:clamp(16px,1.6vw,20px);line-height:1.75;color:#486873;max-width:575px;margin:0}
+.actions{display:flex;gap:12px;flex-wrap:wrap;margin:31px 0 19px}.proof{font-size:13px;color:var(--muted);display:flex;flex-wrap:wrap;gap:17px;font-weight:650}
+.display{position:relative;padding:10px 0 35px;min-width:0}.glow{position:absolute;inset:6% 2% 0;border-radius:40px;background:linear-gradient(120deg,#b0f5e6,#b1f3f2);filter:blur(17px);transform:rotate(5deg)}
+.preview{position:relative;background:#fff;border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow);overflow:hidden;transform:rotate(-2deg)}
+.mockbar{padding:15px 20px;display:flex;gap:7px;align-items:center;border-bottom:1px solid #e9f1f1}.mockbar i{width:8px;height:8px;border-radius:50%;background:#d3dfe2}.mockbar strong{margin-left:auto;font-size:11px;color:#739098;letter-spacing:.1em;text-transform:uppercase}
+.mockbody{padding:26px 25px 30px}.mockhead{display:flex;justify-content:space-between;align-items:start;gap:15px}.mockhead span{font-size:12px;color:#637d85}.mockhead h3{margin:5px 0;font-size:22px;letter-spacing:-.5px}.chip{font-size:11px;color:#01796d;background:#dff9ef;padding:7px 10px;border-radius:30px;font-weight:850}
+.mockstats{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:24px 0}.mockstats>div{border:1px solid #e1eeee;border-radius:12px;padding:13px 9px}.mockstats small{font-size:10px;color:#64808a;display:block;margin-bottom:9px}.mockstats b{font-size:22px}
+.mockrows{border:1px solid #e5eeef;border-radius:14px;overflow:hidden}.mockrow{display:flex;justify-content:space-between;gap:10px;padding:13px 15px;font-size:12px;border-top:1px solid #edf4f4}.mockrow:first-child{border-top:0}.mockrow strong{font-size:13px}
+.invoice{position:absolute;right:-14px;bottom:-16px;width:min(55%,270px);background:#103447;color:#fff;padding:21px;border-radius:18px;box-shadow:0 22px 55px #0c454a4d;transform:rotate(5deg)}.invoice .small{color:#abdad4;font-size:11px}.invoice .sum{font-weight:850;font-size:28px;margin-top:20px}.invoice .tick{display:inline-block;margin-top:16px;padding:9px 11px;background:#10d1b6;border-radius:9px;color:#073b3c;font-size:11px;font-weight:850}
+.notice{font-size:11px;color:#577e82;margin-top:36px;text-align:center}
+.section{padding:95px 0}.sec-head{max-width:650px;margin:0 auto 44px;text-align:center}.kicker{color:var(--teal-dark);font-size:12px;font-weight:850;letter-spacing:.13em;text-transform:uppercase}.sec-head h2,.closing h2{font-size:clamp(32px,4vw,49px);letter-spacing:-.045em;line-height:1.12;margin:13px 0 15px}.sec-head p{color:var(--muted);font-size:17px;line-height:1.7}
+.features{display:grid;grid-template-columns:repeat(3,1fr);gap:19px}.feature{background:#fff;border:1px solid var(--line);border-radius:20px;padding:30px;box-shadow:0 6px 30px #143d3e06}.feature .icon{width:50px;height:50px;display:grid;place-items:center;border-radius:15px;background:#e8faf5;font-size:25px}.feature h3{font-size:21px;margin:23px 0 10px;letter-spacing:-.5px}.feature p{color:var(--muted);font-size:15px;line-height:1.7;margin:0}
+.how{background:var(--milk);border-top:1px solid #e8f1f0;border-bottom:1px solid #e8f1f0}.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:21px}.step{padding:28px 27px;background:#fff;border:1px solid var(--line);border-radius:19px}.step .number{font-size:13px;color:var(--teal-dark);letter-spacing:.1em;font-weight:900}.step h3{font-size:21px;margin:18px 0 8px}.step p{color:var(--muted);font-size:15px;line-height:1.65}
+.quote{display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:55px}.quote h2{font-size:clamp(31px,4vw,48px);line-height:1.14;letter-spacing:-.05em;margin:14px 0}.quote p{line-height:1.75;color:var(--muted)}.quote ul{list-style:none;padding:0;display:grid;gap:16px}.quote li{padding-left:27px;position:relative;color:#45636e}.quote li:before{content:"✓";position:absolute;left:0;color:var(--teal-dark);font-weight:900}
+.sample{padding:30px;background:linear-gradient(140deg,#ecfaf7,#eaf6fc);border-radius:28px}.paper{background:white;border:1px solid #d4e5e6;border-radius:16px;box-shadow:var(--shadow);padding:30px}.paperhead{display:flex;justify-content:space-between;font-weight:800;align-items:center}.paperhead span{color:#009e91}.paperline{border-top:1px solid #d9e6e8;padding:15px 0;display:flex;justify-content:space-between;font-size:14px}.paperline.first{margin-top:30px}.paperline strong{font-size:15px}.paperbottom{display:flex;justify-content:space-between;align-items:center;margin-top:25px;padding-top:20px;border-top:2px solid var(--ink);font-size:20px;font-weight:850}
+.faq{max-width:800px;margin:auto}.faq details{border-bottom:1px solid var(--line);padding:22px 5px}.faq summary{cursor:pointer;font-size:18px;font-weight:750;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:15px}.faq summary::-webkit-details-marker{display:none}.faq summary:after{content:"+";color:var(--teal-dark);font-size:25px}.faq details[open] summary:after{content:"−"}.faq p{color:var(--muted);line-height:1.75}
+.closing{background:linear-gradient(125deg,#0d3344,#0c5960);color:#fff;text-align:center;padding:80px 20px}.closing p{color:#d0e7e7;line-height:1.7}.closing .btn{margin-top:20px}.closing .btn-primary{color:#073538}
+footer{padding:38px 0;color:#5a7076;font-size:13px;background:#f9fbfb}.foot{display:flex;justify-content:space-between;gap:25px;align-items:center;flex-wrap:wrap}.foot a{color:#315c65;text-underline-offset:3px}.footlinks{display:flex;flex-wrap:wrap;gap:21px}
+@media(max-width:980px){.hero-grid{grid-template-columns:1fr;gap:38px;padding:55px 0}.display{max-width:610px;margin:auto;width:100%}h1{max-width:750px}.navlinks{gap:16px}.quote{gap:30px}}
+@media(max-width:680px){.wrap{padding:0 18px}nav{padding:13px 0}.brand{font-size:21px}.navlinks>a:not(.btn){display:none}.navlinks .btn{min-height:43px;padding:9px 13px;font-size:12px}.hero-grid{padding:48px 0 50px}h1{font-size:clamp(41px,12vw,61px)}.actions .btn{width:100%}.display{padding-right:5px}.preview{transform:none}.invoice{position:relative;bottom:auto;right:auto;transform:rotate(0deg);width:82%;margin:-10px 0 0 auto}.mockbody{padding:22px 14px}.mockstats b{font-size:18px}.mockhead h3{font-size:19px}.section{padding:68px 0}.features,.steps,.quote{grid-template-columns:1fr}.feature,.step{padding:23px}.sample{padding:14px}.paper{padding:20px}.proof{gap:10px;font-size:12px}.foot{display:block}.footlinks{margin-top:19px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.btn{transition:none}.btn:hover{transform:none}}
+</style>
+</head>
+<body>
+<a href="#contenido" class="skip">Saltar al contenido</a>
+<header><div class="wrap"><nav aria-label="Navegación principal">
+<a class="brand" href="landing.html" aria-label="CotizaFlow Chile, inicio"><span class="mark" aria-hidden="true"><svg width="30" height="30" viewBox="0 0 30 30" fill="none"><rect x="4" y="3.5" width="19" height="23" rx="5" fill="#00BAAB"/><path d="M9 11h9M9 15h6" stroke="#fff" stroke-width="2" stroke-linecap="round"/><circle cx="21" cy="21" r="7" fill="#103447"/><path d="m18 21 2 2 4-4" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Cotiza<em>Flow</em></span></a>
+<div class="navlinks"><a href="#beneficios">Beneficios</a><a href="#como-funciona">Cómo funciona</a><a href="#preguntas">Preguntas</a><a href="./" class="btn btn-primary">Probar gratis ↗</a></div>
+</nav></div></header>
+<main id="contenido">
+<section class="hero"><div class="wrap hero-grid">
+<div><div class="eyebrow"><span class="dot"></span>PARA EMPRENDEDORES Y PYMES DE CHILE</div>
+<h1>Cotiza mejor.<br><span>Trabaja más simple.</span></h1>
+<p class="lead">Organiza tus clientes, prepara presupuestos profesionales y comparte tus cotizaciones sin perder tiempo entre mensajes, notas y planillas.</p>
+<div class="actions"><a class="btn btn-primary" href="./">Crear mi primera cotización ↗</a><a class="btn btn-light" href="#como-funciona">Ver cómo funciona ↓</a></div>
+<div class="proof"><span>✓ Empieza gratis</span><span>✓ Funciona desde tu celular</span><span>✓ Sin tarjeta para probar</span></div></div>
+<div class="display" aria-label="Vista ilustrativa de una cotización y un panel de CotizaFlow"><div class="glow" aria-hidden="true"></div>
+<div class="preview"><div class="mockbar"><i></i><i></i><i></i><strong>CotizaFlow · Vista ilustrativa</strong></div><div class="mockbody">
+<div class="mockhead"><div><span>Panel de trabajo</span><h3>Tu negocio al día</h3></div><span class="chip">TODO EN ORDEN</span></div>
+<div class="mockstats"><div><small>Cotizaciones</small><b>12</b></div><div><small>Pendientes</small><b>3</b></div><div><small>Clientes</small><b>8</b></div></div>
+<div class="mockrows"><div class="mockrow"><span>Servicio eléctrico</span><strong>$45.000</strong></div><div class="mockrow"><span>Mantención preventiva</span><strong>$89.000</strong></div><div class="mockrow"><span>Instalación</span><strong>$125.000</strong></div></div>
+</div></div><div class="invoice"><div class="small">COTIZACIÓN #001</div><strong>Para tu cliente</strong><div class="sum">$45.000</div><div class="small">Presupuesto de ejemplo · CLP</div><div class="tick">✓ Lista para compartir</div></div>
+<div class="notice">Ilustración de uso, no una captura de una cuenta real.</div></div>
+</div></section>
+<section id="beneficios" class="section"><div class="wrap">
+<div class="sec-head"><span class="kicker">UN SOLO LUGAR PARA COTIZAR</span><h2>Más claridad en cada presupuesto</h2><p>Deja de reconstruir cada cotización desde cero. Mantén lo esencial ordenado mientras atiendes a tus clientes.</p></div>
+<div class="features"><article class="feature"><div class="icon" aria-hidden="true">📋</div><h3>Cotizaciones claras</h3><p>Agrega servicios, cantidades y precios para presentar un presupuesto fácil de entender.</p></article>
+<article class="feature"><div class="icon" aria-hidden="true">👥</div><h3>Clientes organizados</h3><p>Registra tus clientes y consulta la información necesaria para preparar nuevas propuestas.</p></article>
+<article class="feature"><div class="icon" aria-hidden="true">📄</div><h3>PDF y WhatsApp</h3><p>Genera un PDF y prepara el mensaje para compartir tu cotización por WhatsApp. El envío lo confirmas tú.</p></article></div>
+</div></section>
+<section id="como-funciona" class="section how"><div class="wrap">
+<div class="sec-head"><span class="kicker">TRES PASOS</span><h2>De la idea al presupuesto</h2><p>Usa la herramienta gratuita sin procesos complicados.</p></div>
+<div class="steps"><article class="step"><span class="number">01 / ORGANIZA</span><h3>Crea un cliente</h3><p>Guarda los datos básicos de la persona o negocio que necesita tu servicio.</p></article>
+<article class="step"><span class="number">02 / COTIZA</span><h3>Agrega tus servicios</h3><p>Escribe qué harás, define cantidades y precios, y revisa el total.</p></article>
+<article class="step"><span class="number">03 / COMPARTE</span><h3>Entrega tu propuesta</h3><p>Descarga el PDF y prepara tu mensaje para WhatsApp.</p></article></div>
+</div></section>
+<section class="section"><div class="wrap quote">
+<div><span class="kicker">HECHO PARA EL TRABAJO REAL</span><h2>Más tiempo para tu negocio. Menos tiempo armando documentos.</h2><p>Ideal para técnicos, instaladores, profesionales independientes y pequeñas empresas que cotizan trabajos o servicios.</p><ul><li>Crea y consulta cotizaciones desde el navegador.</li><li>Da seguimiento a presupuestos pendientes.</li><li>Comienza con las herramientas gratuitas disponibles.</li></ul><a class="btn btn-primary" href="./">Abrir CotizaFlow gratis ↗</a></div>
+<div class="sample" aria-label="Ejemplo ilustrativo de presupuesto"><div class="paper"><div class="paperhead"><strong>COTIZACIÓN 001</strong><span>CotizaFlow</span></div><p style="font-size:13px;color:#627d85;line-height:1.7">Cliente de ejemplo<br>Servicio técnico · Santiago</p><div class="paperline first"><span>Visita técnica</span><strong>$25.000</strong></div><div class="paperline"><span>Instalación</span><strong>$20.000</strong></div><div class="paperbottom"><span>Total</span><span>$45.000 CLP</span></div><p style="font-size:11px;color:#718c92">Valores ficticios para mostrar el formato.</p></div></div>
+</div></section>
+<section class="section how" id="preguntas"><div class="wrap"><div class="sec-head"><span class="kicker">RESPUESTAS CLARAS</span><h2>Preguntas frecuentes</h2></div><div class="faq">
+<details><summary>¿Puedo probar CotizaFlow gratis?</summary><p>Sí. Puedes empezar con las herramientas gratuitas disponibles, sin contratar Pro ni ingresar una tarjeta.</p></details>
+<details><summary>¿Se envían solos los WhatsApp?</summary><p>No. CotizaFlow prepara el contenido para compartirlo; tú revisas y confirmas el envío desde WhatsApp.</p></details>
+<details><summary>¿Mis cotizaciones quedan guardadas en la nube?</summary><p>No debes asumir sincronización automática. La versión actual guarda información en el dispositivo y ofrece opciones de respaldo manual. Conserva tus copias de seguridad.</p></details>
+<details><summary>¿Ya está disponible CotizaFlow Pro?</summary><p>No. Estamos preparando y verificando la versión comercial. Por ahora promocionamos solo las funciones gratuitas disponibles.</p></details>
+</div></div></section>
+<section class="closing"><h2>Tu próxima cotización puede ser mucho más simple.</h2><p>Empieza gratis, ordena tus clientes y prepara tu próximo presupuesto.</p><a class="btn btn-primary" href="./">Probar CotizaFlow gratis ↗</a><p style="font-size:12px">Sin cobros activos en esta experiencia gratuita.</p></section>
+</main>
+<footer><div class="wrap foot"><div><strong>CotizaFlow Chile</strong> · Un proyecto de Sequeidau Labs.<br>Contacto: <a href="mailto:soporte@sequeidaulabs.com">soporte@sequeidaulabs.com</a></div><div class="footlinks"><a href="./privacidad.html">Privacidad</a><a href="./terminos.html">Términos</a><a href="./">Abrir la app</a></div></div></footer>
+</body></html>
