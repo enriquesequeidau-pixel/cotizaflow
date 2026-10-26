@@ -22,7 +22,7 @@ function fixture(overrides={}) {
 test('exporta ICS privado solo tras verificar Pro, en orden seguro',async()=>{
   const f=fixture();
   const ics=await exportProFollowups(f.deps);
-  assert.deepEqual(f.calls,['verify','read','verify','namespace','download']);
+  assert.deepEqual(f.calls,['verify','read','verify','namespace','verify','download']);
   assert.equal(f.downloads[0].name,'cotizaflow-seguimientos.ics');
   assert.equal(f.downloads[0].ics,ics);
   assert.match(ics,/DTSTART;VALUE=DATE:20260906/);
@@ -43,10 +43,10 @@ test('fallo de verificación remota se propaga sin descarga',async()=>{
 });
 test('revalida acceso en cada exportación, incluso tras una primera aprobación',async()=>{
   let checks=0;
-  const f=fixture({verifyPro:async()=>++checks<=2});
+  const f=fixture({verifyPro:async()=>++checks<=3});
   await exportProFollowups(f.deps);
   await assert.rejects(exportProFollowups(f.deps),/Acceso Pro no verificado/);
-  assert.equal(checks,3);
+  assert.equal(checks,4);
   assert.equal(f.downloads.length,1);
 });
 test('datos corruptos bloquean descarga y no se reparan silenciosamente',async()=>{
@@ -100,5 +100,30 @@ test('revocación Pro durante lectura asíncrona impide exportar',async()=>{
   assert.equal(checks,2);
   assert.equal(reads,1);
   assert.equal(namespaces,0);
+  assert.equal(f.downloads.length,0);
+});
+
+test('revocación durante creación de namespace impide descarga ICS privada',async()=>{
+  let active=true,checks=0,reads=0,namespaces=0;
+  const f=fixture({
+    verifyPro:async()=>{checks++;return active;},
+    readData:()=>{reads++;return sample();},
+    namespace:()=>{namespaces++;active=false;return 'opaque_local';}
+  });
+  await assert.rejects(exportProFollowups(f.deps),/Acceso Pro no verificado/);
+  assert.equal(checks,3);
+  assert.equal(reads,1);
+  assert.equal(namespaces,1);
+  assert.equal(f.downloads.length,0);
+});
+
+test('fallo remoto en verificación final impide exportación ICS',async()=>{
+  let checks=0;
+  const f=fixture({verifyPro:async()=>{
+    if(++checks===3)throw Error('proveedor no disponible');
+    return true;
+  }});
+  await assert.rejects(exportProFollowups(f.deps),/proveedor no disponible/);
+  assert.equal(checks,3);
   assert.equal(f.downloads.length,0);
 });
