@@ -9,6 +9,14 @@ const DATA='cotizaflow-v1',SESSION='cotizaflow-cloud-session-v1';
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=(x,c='CLP')=>new Intl.NumberFormat('es-CL',{style:'currency',currency:c,maximumFractionDigits:c==='CLP'?0:2}).format(x||0);
 const sum=q=>{const gross=(q.items||[]).reduce((s,i)=>s+Number(i.qty||0)*Number(i.price||0),0);return gross*(1-Number(q.discount||0)/100)*(1+Number(q.tax||0)/100)};
+// Continuity only: the backend's ensurePro remains the authorization source.
+// Fail closed if logout/account switching changes the active browser session.
+function reportAccountIdentity(){
+  try{
+    const id=JSON.parse(sessionStorage.getItem(SESSION)||'null')?.user?.id;
+    return typeof id==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)?id:null;
+  }catch{return null;}
+}
 const getData=()=>{let d=JSON.parse(localStorage.getItem(DATA)||'null');return d&&Array.isArray(d.quotes)&&Array.isArray(d.clients)?d:null};
 const css=document.createElement('style');css.textContent=`#cf-pro-open{position:fixed;left:16px;bottom:70px;z-index:999;background:#123a52;color:white;border:0;border-radius:30px;padding:11px 15px;font-weight:800;box-shadow:0 5px 24px #1235}#cf-pro-dialog{border:0;border-radius:16px;width:min(94vw,780px);max-height:91vh;padding:23px;color:#193a47;font:14px system-ui;box-shadow:0 10px 55px #1238}#cf-pro-dialog::backdrop{background:#092936ad}#cf-pro-dialog h2{font-size:23px}#cf-pro-dialog button{padding:10px 13px;border-radius:9px;border:1px solid #b5cacf;background:white;color:#174650;cursor:pointer;margin:5px 4px 5px 0}#cf-pro-dialog .primary{background:#0b766a;color:white}#cf-pro-dialog input,#cf-pro-dialog textarea,#cf-pro-dialog select{width:100%;padding:9px;margin-top:5px;margin-bottom:9px}#cf-pro-dialog .metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:9px}#cf-pro-dialog .metric{background:#eff8f6;padding:14px;border-radius:9px;font-size:17px}#cf-pro-dialog .metric small{display:block;font-size:12px}#cf-pro-dialog section{border-top:1px solid #d9e7ea;padding-top:13px;margin-top:15px}#cf-pro-dialog table{min-width:0;font-size:13px;width:100%}#cf-pro-dialog th,#cf-pro-dialog td{padding:8px;text-align:left}#cf-pro-status{white-space:pre-wrap}`;document.head.append(css);
 const btn=document.createElement('button');btn.id='cf-pro-open';btn.textContent='✨ Estudio Pro';btn.type='button';document.body.append(btn);
@@ -45,7 +53,7 @@ $('cf-pro-report-preview').onclick=async()=>{
   output.textContent='Verificando suscripción y calculando el informe…';
   try{
     const report=await prepareProCommercialReport({
-      verifyPro:ensurePro,readData:getData,filters:reportFilters()
+      verifyPro:ensurePro,readData:getData,accountIdentity:reportAccountIdentity,filters:reportFilters()
     });
     output.textContent='Cotizaciones: '+report.counts.total+
       ' · Total cotizado: '+fmt(report.totalQuoted,report.currency)+
@@ -60,7 +68,7 @@ $('cf-pro-report-csv').onclick=async()=>{
   const button=$('cf-pro-report-csv');button.disabled=true;
   try{
     const result=await exportProCommercialReport({
-      verifyPro:ensurePro,readData:getData,filters:reportFilters(),
+      verifyPro:ensurePro,readData:getData,accountIdentity:reportAccountIdentity,filters:reportFilters(),
       downloadCsv:(csv,name)=>download(new Blob([csv],{type:'text/csv;charset=utf-8'}),name)
     });
     notice('Informe CSV descargado: '+result.rows+' cotizaciones. No son ingresos cobrados.');
