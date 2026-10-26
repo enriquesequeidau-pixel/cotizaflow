@@ -110,3 +110,56 @@ test('can duplicate twice with distinct IDs and consecutive numbers',async()=>{
   assert.deepEqual(data.quotes.map(q=>q.number),['COT-0003','COT-0002','COT-0001']);
   assert.equal(f.writes(),2);
 });
+
+function exclusiveLocks(){
+  const queues=new Map();let active=0,peak=0;
+  return {
+    request:async(name,options,task)=>{
+      assert.equal(name,'cotizaflow-v1-pro-duplicate');
+      assert.deepEqual(options,{mode:'exclusive'});
+      const previous=queues.get(name)||Promise.resolve();
+      let release;
+      const turn=new Promise(resolve=>{release=resolve;});
+      queues.set(name,turn);
+      await previous;
+      active++;peak=Math.max(peak,active);
+      try{return await task();}
+      finally{
+        active--;release();
+        if(queues.get(name)===turn)queues.delete(name);
+      }
+    },
+    peak:()=>peak
+  };
+}
+test('Web Locks serialize simultaneous Pro copies into distinct consecutive drafts',async()=>{
+  const f=fixture(),locks=exclusiveLocks();
+  const first=duplicateProQuote({...f.deps,locks});
+  const next=['q3','i3'];
+  const second=duplicateProQuote({...f.deps,locks,idFactory:()=>next.shift()});
+  const results=await Promise.all([first,second]);
+  assert.deepEqual(results.map(x=>x.number),['COT-0002','COT-0003']);
+  assert.equal(locks.peak(),1);
+  assert.equal(f.writes(),2);
+  const saved=JSON.parse(f.raw());
+  assert.deepEqual(saved.quotes.map(q=>q.number),['COT-0003','COT-0002','COT-0001']);
+  assert.deepEqual(saved.quotes.map(q=>q.id),['q3','q2','q1']);
+});
+test('failed locked duplication releases lock and does not block the next valid copy',async()=>{
+  const f=fixture(),locks=exclusiveLocks();
+  const bad=duplicateProQuote({...f.deps,locks,idFactory:()=> 'q1'});
+  const good=duplicateProQuote({...f.deps,locks});
+  const [failure,success]=await Promise.allSettled([bad,good]);
+  assert.equal(failure.status,'rejected');
+  assert.match(failure.reason.message,/ID nuevo/);
+  assert.equal(success.status,'fulfilled');
+  assert.equal(success.value.number,'COT-0002');
+  assert.equal(f.writes(),1);
+  assert.equal(locks.peak(),1);
+});
+test('Free denial inside Web Lock reads no customer records',async()=>{
+  const f=fixture({verifyPro:async()=>false}),locks=exclusiveLocks();
+  await assert.rejects(duplicateProQuote({...f.deps,locks}),/Acceso Pro no verificado/);
+  assert.equal(f.reads(),0);
+  assert.equal(f.writes(),0);
+});
