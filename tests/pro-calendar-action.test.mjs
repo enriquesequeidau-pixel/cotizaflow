@@ -80,7 +80,7 @@ test('adaptador rechaza dependencias incompletas antes de consultar datos',async
 test('lectura asíncrona de datos aislados espera resolución antes de exportar',async()=>{
   const f=fixture({readData:async()=>{f.calls.push('read-async');return sample();}});
   const ics=await exportProFollowups(f.deps);
-  assert.deepEqual(f.calls,['verify','read-async','verify','namespace','download']);
+  assert.deepEqual(f.calls,['verify','read-async','verify','namespace','verify','download']);
   assert.match(ics,/BEGIN:VEVENT/);
 });
 test('rechazo de lectura asíncrona no crea UID ni descarga datos',async()=>{
