@@ -33,6 +33,9 @@ export async function exportProFollowups({verifyPro,readData,namespace,downloadI
   // Async reads can outlive an entitlement; fail closed before exporting private data.
   if(await verifyPro()!==true) throw new Error('Acceso Pro no verificado.');
   const ics=buildFollowupCalendar(data,{namespace:namespace(),generatedAt});
+  // Namespace generation may trigger an account switch or revoke access.
+  // Recheck immediately before exposing the private calendar download.
+  if(await verifyPro()!==true) throw new Error('Acceso Pro no verificado.');
   await downloadIcs(ics,'cotizaflow-seguimientos.ics');
   return ics;
 }
