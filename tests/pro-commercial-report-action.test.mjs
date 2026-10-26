@@ -95,3 +95,45 @@ test('invalid customer data or inverted date selection fails without export',asy
   await assert.rejects(exportProCommercialReport(h.deps),/invertido/);
   assert.deepEqual(h.counters.downloads,[]);
 });
+
+test('mismo usuario Pro puede previsualizar y exportar sin modificar datos Free',async()=>{
+  const h=harness();
+  let owner='11111111-1111-4111-8111-111111111111';
+  h.deps.accountIdentity=()=>owner;
+  const preview=await prepareProCommercialReport(h.deps);
+  assert.equal(preview.rows.length,2);
+  const exported=await exportProCommercialReport(h.deps);
+  assert.equal(exported.rows,2);
+  assert.equal(h.counters.downloads.length,1);
+  assert.deepEqual(h.payload,h.old);
+});
+
+test('cambio de cuenta Pro durante lectura asíncrona bloquea vista privada',async()=>{
+  const h=harness();let owner='account-a';
+  h.deps.accountIdentity=()=>owner;
+  h.deps.readData=async()=>{h.counters.reads++;owner='account-b';return h.payload;};
+  await assert.rejects(prepareProCommercialReport(h.deps),/La cuenta cambió/);
+  assert.equal(h.counters.checks,2);
+  assert.equal(h.counters.reads,1);
+  assert.deepEqual(h.counters.downloads,[]);
+  assert.deepEqual(h.payload,h.old);
+});
+
+test('cambio de cuenta en verificación final no descarga CSV de la cuenta anterior',async()=>{
+  const h=harness();let owner='account-a';
+  h.deps.accountIdentity=()=>owner;
+  h.deps.verifyPro=async()=>{h.counters.checks++;if(h.counters.checks===3)owner='account-b';return true;};
+  await assert.rejects(exportProCommercialReport(h.deps),/La cuenta cambió/);
+  assert.equal(h.counters.checks,3);
+  assert.equal(h.counters.reads,1);
+  assert.deepEqual(h.counters.downloads,[]);
+});
+
+test('sesión ausente o cerrada bloquea informe antes de leer clientes',async()=>{
+  const h=harness();
+  h.deps.accountIdentity=()=>null;
+  await assert.rejects(prepareProCommercialReport(h.deps),/La cuenta cambió/);
+  assert.equal(h.counters.checks,1);
+  assert.equal(h.counters.reads,0);
+  assert.deepEqual(h.counters.downloads,[]);
+});
