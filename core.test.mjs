@@ -1,4 +1,4 @@
-import test from 'node:test';import assert from 'node:assert/strict';import {calc,validateQuote,pdfBytes,makeWhatsAppLink,normalize} from '../core.mjs';
+import test from 'node:test';import assert from 'node:assert/strict';import {calc,validateQuote,pdfBytes,makeWhatsAppLink,normalize} from './core.mjs';
 const client={id:'c1',name:'Ana Pérez',phone:'+56911112222',email:'ana@example.com'};const quote={number:'COT-0001',clientId:'c1',date:'2026-10-18',validUntil:'2026-10-25',followUp:'2026-10-21',status:'borrador',discount:10,tax:19,items:[{name:'Instalación eléctrica',qty:2,price:10000}],notes:'Válido por 7 días'};
 test('cálculo exacto con descuento e impuesto',()=>{assert.deepEqual(calc(quote.items,10,19),{subtotal:20000,discount:2000,tax:3420,total:21420});});
 test('validación detecta cantidades y clientes inválidos',()=>{assert.deepEqual(validateQuote(quote,[client]),[]);assert.ok(validateQuote({...quote,clientId:'missing',items:[{name:'',qty:0,price:-10}]},[client]).length>=3);});
