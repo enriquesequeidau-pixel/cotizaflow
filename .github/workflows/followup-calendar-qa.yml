@@ -6,6 +6,7 @@ on:
       - 'pro-calendar-action.mjs'
       - 'pro.mjs'
       - 'tests/pro-calendar-action.test.mjs'
+      - 'tests/e2e-pro-calendar.py'
       - 'tests/followup-calendar.test.mjs'
       - '.github/workflows/followup-calendar-qa.yml'
   workflow_dispatch:
@@ -24,3 +25,14 @@ jobs:
         run: node --check followup-calendar.mjs && node --check pro-calendar-action.mjs && node --check pro.mjs && node --check tests/followup-calendar.test.mjs && node --check tests/pro-calendar-action.test.mjs
       - name: Pruebas de calendario Pro v2
         run: node --test tests/followup-calendar.test.mjs tests/pro-calendar-action.test.mjs
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Instalar Chromium aislado
+        run: |
+          python -m pip install playwright==1.56.0
+          python -m playwright install --with-deps chromium
+      - name: E2E calendario con sesión ficticia y acceso simulado
+        run: |
+          python -m py_compile tests/e2e-pro-calendar.py
+          python tests/e2e-pro-calendar.py
