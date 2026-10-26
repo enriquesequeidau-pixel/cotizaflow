@@ -12,12 +12,15 @@ const MAX_BYTES=2_000_000;
 const ID=/^[A-Za-z0-9_-]{1,100}$/;
 
 export async function duplicateProQuote({verifyPro,storage,sourceId,
-  date,idFactory=()=>crypto.randomUUID()}={}){
+  date,idFactory=()=>crypto.randomUUID(),locks=globalThis.navigator?.locks}={}){
   if(typeof verifyPro!=='function'||!storage||
       typeof storage.getItem!=='function'||typeof storage.setItem!=='function'||
       typeof sourceId!=='string'||!ID.test(sourceId)||
       typeof idFactory!=='function')
     throw new TypeError('Integración de duplicación Pro incompleta.');
+  // Serialize Pro duplication across same-origin tabs when Web Locks is available.
+  // Other Free-editor writes do not participate: retain the snapshot check below.
+  const operation=async()=>{
   // Never read local customer data before checking server-side entitlement.
   if(await verifyPro()!==true)throw new Error('Acceso Pro no verificado.');
   const previous=storage.getItem(KEY);
@@ -41,4 +44,9 @@ export async function duplicateProQuote({verifyPro,storage,sourceId,
   if(storage.getItem(KEY)!==serialized)
     throw new Error('No se pudo confirmar el guardado local.');
   return Object.freeze({id:copy.id,number:copy.number,status:'borrador'});
+  };
+  if(locks && typeof locks.request==='function')
+    return locks.request('cotizaflow-v1-pro-duplicate',{mode:'exclusive'},operation);
+  // Older/non-secure browsers keep the existing optimistic snapshot guard.
+  return operation();
 }
