@@ -26,13 +26,10 @@ jobs:
           python-version: '3.12'
 
       - name: Preparar pruebas
-        run: |
-          mkdir -p tests artifacts
-          cp core.test.mjs tests/core.test.mjs
-          cp e2e_playwright.py tests/e2e_playwright.py
+        run: mkdir -p tests artifacts
 
       - name: Ejecutar pruebas unitarias
-        run: node --test tests/core.test.mjs
+        run: node --test core.test.mjs
 
       - name: Instalar Playwright
         run: |
@@ -40,7 +37,9 @@ jobs:
           python -m playwright install --with-deps chromium
 
       - name: Ejecutar pruebas visuales
-        run: python tests/e2e_playwright.py
+        run: |
+          cp e2e_playwright.py tests/e2e_playwright.py
+          python tests/e2e_playwright.py
 
       - name: Guardar evidencias
         if: always()
