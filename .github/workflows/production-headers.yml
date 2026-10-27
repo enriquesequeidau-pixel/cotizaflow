@@ -1,9 +1,7 @@
 name: Production HTTP security headers
 on:
-  push:
-    branches: [main]
   schedule:
-    - cron: "21 13 * * *"
+    - cron: "21 13 * * 1"
   workflow_dispatch:
 permissions:
   contents: read
