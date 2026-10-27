@@ -3,7 +3,9 @@ from pathlib import Path
 from playwright.sync_api import sync_playwright
 import subprocess, time, os
 
-ROOT=Path(__file__).resolve().parents[1]
+ROOT=Path(__file__).resolve().parent
+if not (ROOT/'index.html').is_file():
+ raise RuntimeError('CotizaFlow E2E: index.html missing; refusing to serve outside repository')
 OUT=ROOT/'artifacts'; OUT.mkdir(exist_ok=True)
 server=subprocess.Popen(['python3','-m','http.server','8765','--bind','127.0.0.1'],cwd=ROOT,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
 try:
