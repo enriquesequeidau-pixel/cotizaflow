@@ -37,6 +37,50 @@
 5. Cancelación: emite `PUT /preapproval/{id}` con estado canceled, exige confirmación
    proveedor y actualiza el registro a cancelled. **No se ha ejecutado E2E.**
 
+## Publicación del frontend y contrato con Mercado Pago (verificación 27-oct)
+
+**Hallazgo reproducido en Render preview** `cotizaflow-comercial-preview`
+(`srv-dbbtvp7avr4c73dkalr0`): los recursos
+`/plan-checkout.mjs`, `/billing-return.mjs` y
+`/auth-captcha.mjs` devolvían **HTTP 404**; el módulo `/pro.mjs`
+sí estaba disponible. `index.html` importa `plan-checkout.mjs`,
+`cloud.mjs` y `pro.mjs`, que a su vez importan otros módulos.
+Por tanto, el **preview** no tiene un bundle completo para la
+prueba de Checkout/Pro/Auth. El dominio comercial
+`cotizaflow.sequeidaulabs.com` sí sirvió los dos módulos de
+`plan-checkout.mjs` y `billing-return.mjs` consultados. **No
+confundir** falla del preview con el estado del sitio comercial.
+
+Se actualizó `render.yaml` con el grafo completo de dependencias
+estáticas públicas, `brand-symbol.svg` y cabeceras CSP que admiten
+Cloudflare Turnstile sin abrir scripts inline. La prueba
+`tests/render-preview-dependency-parity.test.mjs` recorre
+imports de `index.html`, `cloud.mjs`, `pro.mjs` y
+`plan-checkout.mjs`, detectando archivos omitidos o filtraciones
+accidentales. También se añadió al CI de publicación.
+
+**Importante**: actualizar `render.yaml` en GitHub NO cambia por sí
+solo el Build Command del servicio Render existente.
+Su Build Command se debe actualizar específicamente en el servicio
+`srv-dbbtvp7avr4c73dkalr0` antes de desplegar el preview.
+No crear servicio nuevo ni mover DNS sin pruebas HTTP y visuales.
+
+Referencia oficial MP Chile:
+- Suscripciones sin plan son admitidas en `POST /preapproval`:
+  https://www.mercadopago.cl/developers/es/reference/online-payments/subscriptions/create-preapproval/post
+- La fuente para conciliar facturas y pagos es
+  `/authorized_payments/search` y `/v1/payments/{id}`:
+  https://www.mercadopago.cl/developers/es/reference/online-payments/subscriptions/overview
+- La cancelación se solicita mediante `PUT /preapproval/{id}`
+  con `status: canceled`:
+  https://www.mercadopago.cl/developers/es/docs/subscriptions/subscription-management
+
+La falta de un `plan_id` **no es por sí sola un defecto**:
+el diseño actual usa suscripción sin plan asociado. No inventar
+un identificador de plan para obligar al backend a cobrar.
+La verificación completa del vendedor y comprador ficticios todavía
+está pendiente; las fuentes oficiales no son prueba E2E.
+
 ## No afirmaciones
 
 - No se ha demostrado que Mercado Pago acepte la creación de una suscripción

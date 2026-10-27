@@ -16,6 +16,8 @@ jobs:
           python-version: '3.12'
       - name: Static release safety checks
         run: python -m unittest discover -s tests -p 'test_release_smoke.py' -v
+      - name: Verify Render preview contains every imported payment and Auth module
+        run: node --test tests/render-preview-dependency-parity.test.mjs
       - name: Test app-specific registration and recovery safeguards
         run: python -m unittest discover -s tests -p 'test_auth_policy.py' -v
       - name: Assert per-tab session isolation and recovery boundaries
