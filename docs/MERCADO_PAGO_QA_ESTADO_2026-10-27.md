@@ -14,6 +14,9 @@
   evidencia de suscripciones de prueba pagadas en esta tabla.
 - `cotizaflow-mp-diagnostic` está desactivado explícitamente (`HTTP 410`),
   sin filtración pública de secretos o diagnósticos privados.
+- `cotizaflow-sandbox-setup` v12 también responde **HTTP 410** con
+  `sandbox_setup_closed`: no permite generar usuarios sandbox; indica que
+  se requiere una cuenta desarrolladora matriz de Mercado Pago.
 
 ## Comprobado por lectura de código (NO equivale a QA E2E)
 
@@ -47,10 +50,10 @@
 
 ## Siguiente ruta de menor esfuerzo
 
-1. Reutilizar `cotizaflow-sandbox-setup` para comprobar si existen vendedor y
-   comprador ficticios compatibles, **sin crear nuevos usuarios ni hacer cobros**.
-   Identificar por qué todavía no hay test E2E (credenciales de vendedor y/o
-   habilitación app_metadata del usuario ficticio).
+1. **Bloqueo externo confirmado:** `cotizaflow-sandbox-setup` está cerrado
+   (`HTTP 410`) por requerir una cuenta desarrolladora matriz de Mercado Pago.
+   Validar desde esa cuenta la existencia de vendedor y comprador ficticios
+   chilenos; no reactivar el endpoint público ni crear cuentas duplicadas.
 2. Crear solo las cuentas de prueba que falten, por canales oficiales de
    Mercado Pago, sin usar tarjetas reales. Mantener separado el email y
    credenciales sandbox de cuentas de clientes.
