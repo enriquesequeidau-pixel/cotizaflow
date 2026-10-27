@@ -1,6 +1,6 @@
 // CotizaFlow — Mercado Pago Chile, backend compartido. Credenciales SOLO en secretos de Supabase.
 import { createClient } from 'npm:@supabase/supabase-js@2';
-export const ORIGIN='https://enriquesequeidau-pixel.github.io';
+export const ORIGIN='https://cotizaflow.sequeidaulabs.com';
 export const headers={'Content-Type':'application/json','Cache-Control':'no-store','Access-Control-Allow-Origin':ORIGIN,'Access-Control-Allow-Methods':'POST,OPTIONS','Access-Control-Allow-Headers':'authorization,apikey,content-type'};
 export const json=(status:number,body:unknown)=>new Response(JSON.stringify(body),{status,headers});
 export const secret=(n:string)=>Deno.env.get(n)||'';
