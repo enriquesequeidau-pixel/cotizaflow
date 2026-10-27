@@ -100,6 +100,24 @@ archivo del repo después de reemplazar el hostname (salvo un salto de
 línea final en una de las tres copias). No reutilizar la URL antigua.
 Esta corrección no es evidencia de checkout con Mercado Pago.
 
+## Estado tributario transversal a las cuatro apps
+
+El titular **compró la oficina virtual** para Sequeidau Labs SpA el
+27 de octubre de 2026. Están pendientes los antecedentes contractuales y el
+inicio de actividades del SII; no se ha autorizado emitir cobros ni
+contratar suscripciones reales. No volver a pedir que compre domicilio.
+Antes de Live: validar SII/boletas y merchant Mercado Pago Chile,
+realizar E2E de prueba con usuarios ficticios adecuados y comprobar
+cancelación, expiración, revocación y conciliación. La venta tiene precio
+previsto **CLP 7.990/mes**.
+
+El backend real sigue con `checkout_enabled=false` tanto en CL como
+en MX al último control de solo lectura. El frontend en
+`https://cotizaflow.sequeidaulabs.com` está publicado.
+El preview de Render usa un Build Command anterior y **no se arregla
+simplemente desplegando `render.yaml`**. El flujo real todavía no tiene
+una transacción exitosa de suscripción comprobada.
+
 ## No afirmaciones
 
 - No se ha demostrado que Mercado Pago acepte la creación de una suscripción
