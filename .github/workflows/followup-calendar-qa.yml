@@ -25,7 +25,7 @@ jobs:
         run: node --check followup-calendar.mjs && node --check pro-calendar-action.mjs && node --check pro.mjs && node --check tests/followup-calendar.test.mjs && node --check tests/pro-calendar-action.test.mjs
       - name: Pruebas de calendario Pro v2
         run: node --test tests/followup-calendar.test.mjs tests/pro-calendar-action.test.mjs
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.12'
       - name: Instalar Chromium aislado
