@@ -1,11 +1,5 @@
 name: CotizaFlow password recovery QA
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'cloud.mjs'
-      - 'tests/recovery-flow.py'
-      - '.github/workflows/recovery-qa.yml'
   workflow_dispatch:
 permissions:
   contents: read
