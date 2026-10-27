@@ -81,6 +81,25 @@ un identificador de plan para obligar al backend a cobrar.
 La verificación completa del vendedor y comprador ficticios todavía
 está pendiente; las fuentes oficiales no son prueba E2E.
 
+## Fuente de verdad: origen CORS comercial
+
+La revisión de los archivos realmente desplegados en Supabase
+(`cotizaflow-mp-checkout` v19, `cotizaflow-mp-webhook` v17,
+`cotizaflow-pro-access` v15) encontró `ORIGIN` configurado como
+`https://cotizaflow.sequeidaulabs.com`. Sin embargo, el archivo
+`common.ts` del repositorio todavía indicaba
+`https://enriquesequeidau-pixel.github.io`. Un despliegue futuro
+hecho desde esa fuente desactualizada habría denegado el origen
+comercial por CORS. Se corrigió el repositorio para coincidir
+con el valor **ya desplegado**, sin cambiar ni reiniciar las funciones.
+La prueba `tests/mp-origin-parity.test.cjs` y el release-smoke de
+GitHub vigilan esa configuración.
+
+El código compartido desplegado era funcionalmente equivalente al
+archivo del repo después de reemplazar el hostname (salvo un salto de
+línea final en una de las tres copias). No reutilizar la URL antigua.
+Esta corrección no es evidencia de checkout con Mercado Pago.
+
 ## No afirmaciones
 
 - No se ha demostrado que Mercado Pago acepte la creación de una suscripción
