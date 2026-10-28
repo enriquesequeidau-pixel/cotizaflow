@@ -9,7 +9,7 @@ services:
     repo: https://github.com/enriquesequeidau-pixel/cotizaflow
     branch: main
     autoDeployTrigger: off
-    buildCommand: mkdir -p dist && cp index.html style.css brand-symbol.svg app.mjs cloud.mjs pro.mjs backup.mjs core.mjs workflow.mjs plan-checkout.mjs billing-return.mjs auth-captcha.mjs cloud-crypto.mjs pro-safety.mjs pro-calendar-action.mjs followup-calendar.mjs pro-duplicate-action.mjs quote-duplicate.mjs pro-commercial-report-action.mjs commercial-report.mjs privacidad.html terminos.html dist/
+    buildCommand: mkdir -p dist && cp index.html landing.html style.css brand-symbol.svg app.mjs cloud.mjs pro.mjs backup.mjs core.mjs workflow.mjs plan-checkout.mjs billing-return.mjs auth-captcha.mjs cloud-crypto.mjs pro-safety.mjs pro-calendar-action.mjs followup-calendar.mjs pro-duplicate-action.mjs quote-duplicate.mjs pro-commercial-report-action.mjs commercial-report.mjs privacidad.html terminos.html dist/
     staticPublishPath: dist
     headers:
       - path: /*
